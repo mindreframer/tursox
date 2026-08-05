@@ -74,7 +74,7 @@ option with `Database.builder_features/0`.
 | Autovacuum | absent / none | unsupported | Web-documented experimental builder switch is absent from 0.7.2 |
 | Vacuum | `experimental_vacuum` / `:vacuum` | partial | Works on an initialized file; empty databases produce a 0.7.2 internal error |
 | Attach/detach | `experimental_attach` / `:attach` | supported | Disabled gate and enabled attach/list/detach pass |
-| Generated columns | `experimental_generated_columns` / `:generated_columns` | supported | Disabled gate and virtual generated result pass |
+| Generated columns | `experimental_generated_columns` / `:generated_columns` | unsafe | Disabled gate is stable; reading an enabled generated value can segfault and is probed only in a child BEAM |
 | `WITHOUT ROWID` | `experimental_without_rowid` / `:without_rowid` | supported | Disabled gate and enabled create pass |
 | Multiprocess WAL | `experimental_multiprocess_wal` / `:multiprocess_wal` | platform_limited | Rejected with MVCC; real-process/platform results are in the release section |
 | MVCC passive checkpoint | `experimental_mvcc_passive_checkpoint` / none | unsafe | Rejected before allocation; manual MVCC checkpoint is contained in a child BEAM |
