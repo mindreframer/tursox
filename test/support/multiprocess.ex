@@ -101,6 +101,10 @@ defmodule Tursox.TestSupport.Multiprocess do
   end
 
   defp child_env do
-    [{"MIX_ENV", "test"}, {"TURSOX_BUILD", "1"}, {"ERL_FLAGS", "+sssdio 64"}]
+    [
+      {"MIX_ENV", "test"},
+      {"TURSOX_BUILD", "1"},
+      {"ERL_FLAGS", "+S 2:2 +SDcpu 1:1 +SDio 1 +sssdio 64"}
+    ]
   end
 end

@@ -7,8 +7,8 @@
 - [x] Phase 7.3: Test checkpoints, schema changes, process failure, recovery, and integrity.
 - [x] Phase 7.4: Test mode mixing, memory/MVCC rejection, filesystems, and sidecars.
 - [x] Phase 7.5: Consolidate the generated Roadmap 2 capability and regression report.
-- [ ] Phase 7.6: Synchronize `0.2.0`, docs, changelog, packages, and precompiled artifacts.
-- [ ] Phase 7.7: Pass final QA/release verification and commit Epic 7.
+- [x] Phase 7.6: Synchronize `0.2.0`, docs, changelog, packages, and precompiled artifacts.
+- [x] Phase 7.7: Pass final QA/release verification and commit Epic 7.
 
 ## Implementation Steps
 
@@ -26,8 +26,8 @@
 - [x] Failure/recovery leaves no corruption or orphan child processes.
 - [x] Unsupported combinations fail clearly.
 - [x] Capability report and executable probes agree.
-- [ ] `0.2.0` artifacts pass source and no-Rust consumer smokes.
-- [ ] Final QA passes.
+- [x] `0.2.0` artifacts pass source and no-Rust consumer smokes.
+- [x] Final QA passes.
 
 ## Commit Rule
 

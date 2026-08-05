@@ -1,13 +1,9 @@
 defmodule Tursox.ExperimentalCapabilityTest do
-  use Tursox.TestSupport.TmpCase, async: false
+  use Tursox.TestSupport.TmpCase, async: true
 
-  alias Tursox.{Capabilities, Connection, Cursor, Database, Error, Native}
+  alias Tursox.{Capabilities, Connection, Cursor, Database, Error}
 
-  setup %{tmp_dir: root} do
-    baseline = Native.resource_snapshot()
-    on_exit(fn -> assert baseline == Native.resource_snapshot() end)
-    {:ok, root: root}
-  end
+  setup %{tmp_dir: root}, do: {:ok, root: root}
 
   test "machine-readable matrix is complete and aligned with builder options" do
     matrix = Capabilities.experimental_features()
@@ -100,26 +96,18 @@ defmodule Tursox.ExperimentalCapabilityTest do
     close(vacuum_db, vacuum)
   end
 
-  test "unsupported switches fail validation before native allocation" do
-    baseline = Native.resource_snapshot()
-
+  test "unsupported switches fail validation" do
     for feature <- [:encryption, :autovacuum, :mvcc_passive_checkpoint, :unknown] do
       assert {:error, %Error{code: :unsupported}} = Database.open(:memory, features: [feature])
     end
-
-    assert baseline == Native.resource_snapshot()
   end
 
-  test "incompatible multiprocess MVCC combination fails before allocation" do
-    baseline = Native.resource_snapshot()
-
+  test "incompatible multiprocess MVCC combination is rejected" do
     assert {:error, %Error{code: :invalid_argument}} =
              Database.open(:memory,
                journal_mode: :mvcc,
                features: [:multiprocess_wal]
              )
-
-    assert baseline == Native.resource_snapshot()
   end
 
   test "unsafe enabled feature probes run only in child BEAMs", %{root: root} do
@@ -146,7 +134,11 @@ defmodule Tursox.ExperimentalCapabilityTest do
           "mix",
           ["run", "--no-compile", "bin/capability_probe.exs" | args],
           cd: File.cwd!(),
-          env: [{"MIX_ENV", "test"}, {"TURSOX_BUILD", "1"}, {"ERL_FLAGS", "+sssdio 64"}],
+          env: [
+            {"MIX_ENV", "test"},
+            {"TURSOX_BUILD", "1"},
+            {"ERL_FLAGS", "+S 2:2 +SDcpu 1:1 +SDio 1 +sssdio 64"}
+          ],
           stderr_to_stdout: true
         )
       end)

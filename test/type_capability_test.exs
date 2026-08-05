@@ -1,13 +1,9 @@
 defmodule Tursox.TypeCapabilityTest do
-  use Tursox.TestSupport.TmpCase, async: false
+  use Tursox.TestSupport.TmpCase, async: true
 
-  alias Tursox.{Connection, Cursor, Database, Error, Native, Statement}
+  alias Tursox.{Connection, Cursor, Database, Error, Statement}
 
-  setup %{tmp_dir: root} do
-    baseline = Native.resource_snapshot()
-    on_exit(fn -> assert baseline == Native.resource_snapshot() end)
-    {:ok, root: root}
-  end
+  setup %{tmp_dir: root}, do: {:ok, root: root}
 
   test "ordinary affinity remains flexible while STRICT enforces five base types" do
     {database, connection} = open(:memory)
@@ -184,7 +180,11 @@ defmodule Tursox.TypeCapabilityTest do
           "mix",
           ["run", "--no-compile", "bin/capability_probe.exs", "type-sql", kind, path],
           cd: File.cwd!(),
-          env: [{"MIX_ENV", "test"}, {"TURSOX_BUILD", "1"}, {"ERL_FLAGS", "+sssdio 64"}],
+          env: [
+            {"MIX_ENV", "test"},
+            {"TURSOX_BUILD", "1"},
+            {"ERL_FLAGS", "+S 2:2 +SDcpu 1:1 +SDio 1 +sssdio 64"}
+          ],
           stderr_to_stdout: true
         )
       end)

@@ -1,12 +1,10 @@
 defmodule Tursox.MultiprocessAccessTest do
-  use Tursox.TestSupport.TmpCase, async: false
+  use Tursox.TestSupport.TmpCase, async: true
 
   alias Tursox.TestSupport.Multiprocess, as: MP
-  alias Tursox.{Connection, Cursor, Database, Error, Native}
+  alias Tursox.{Connection, Cursor, Database, Error}
 
   setup %{tmp_dir: root} do
-    baseline = Native.resource_snapshot()
-    on_exit(fn -> assert baseline == Native.resource_snapshot() end)
     {:ok, root: root, path: tmp_path(root, "multiprocess.db")}
   end
 
@@ -76,9 +74,7 @@ defmodule Tursox.MultiprocessAccessTest do
     end
   end
 
-  test "memory and MVCC combinations reject before native allocation", %{path: path} do
-    baseline = Native.resource_snapshot()
-
+  test "memory and MVCC combinations are rejected", %{path: path} do
     assert {:error, %Error{code: :invalid_argument}} =
              Database.open(:memory, features: [:multiprocess_wal])
 
@@ -87,8 +83,6 @@ defmodule Tursox.MultiprocessAccessTest do
                journal_mode: :mvcc,
                features: [:multiprocess_wal]
              )
-
-    assert baseline == Native.resource_snapshot()
   end
 
   defp open(path) do

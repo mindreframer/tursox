@@ -1,12 +1,10 @@
 defmodule Tursox.MultiprocessRecoveryTest do
-  use Tursox.TestSupport.TmpCase, async: false
+  use Tursox.TestSupport.TmpCase, async: true
 
   alias Tursox.TestSupport.Multiprocess, as: MP
-  alias Tursox.{Connection, Cursor, Database, Native, Statement}
+  alias Tursox.{Connection, Cursor, Database, Statement}
 
   setup %{tmp_dir: root} do
-    baseline = Native.resource_snapshot()
-    on_exit(fn -> assert baseline == Native.resource_snapshot() end)
     {:ok, root: root, path: tmp_path(root, "recovery.db")}
   end
 

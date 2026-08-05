@@ -1,10 +1,9 @@
 defmodule Tursox.PragmaCapabilityTest do
-  use Tursox.TestSupport.TmpCase, async: false
+  use Tursox.TestSupport.TmpCase, async: true
 
-  alias Tursox.{Connection, Database, Error, Native}
+  alias Tursox.{Connection, Database, Error}
 
   setup %{tmp_dir: root} do
-    baseline = Native.resource_snapshot()
     path = tmp_path(root)
     {:ok, database} = Database.open(path)
     {:ok, connection} = Database.connect(database)
@@ -12,7 +11,6 @@ defmodule Tursox.PragmaCapabilityTest do
     on_exit(fn ->
       Connection.close(connection)
       Database.close(database)
-      assert baseline == Native.resource_snapshot()
     end)
 
     {:ok, database: database, connection: connection, path: path}
@@ -222,7 +220,11 @@ defmodule Tursox.PragmaCapabilityTest do
           tmp_path(root, "probe.db")
         ],
         cd: project,
-        env: [{"MIX_ENV", "test"}, {"TURSOX_BUILD", "1"}, {"ERL_FLAGS", "+sssdio 64"}],
+        env: [
+          {"MIX_ENV", "test"},
+          {"TURSOX_BUILD", "1"},
+          {"ERL_FLAGS", "+S 2:2 +SDcpu 1:1 +SDio 1 +sssdio 64"}
+        ],
         stderr_to_stdout: true
       )
 

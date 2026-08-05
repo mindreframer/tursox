@@ -198,3 +198,16 @@ file-backed I/O, and a local filesystem; other targets explicitly retain
 Child waits are deadline-bounded and synchronized by atomically renamed barrier
 files. Crash children are killed and reaped. The on-disk coordinator is
 experimental and is not a cross-version stability promise.
+
+## 0.2.0 release verification
+
+Release workflow [31002711851](https://github.com/mindreframer/tursox/actions/runs/31002711851)
+built and directly smoke-tested the exact NIF 2.16 set for macOS aarch64/x86-64,
+Linux aarch64/x86-64 GNU and musl, and Windows x86-64 MSVC. Its aggregate job
+validated all seven archive names and published
+[`v0.2.0`](https://github.com/mindreframer/tursox/releases/tag/v0.2.0) at commit
+`836c5f6a498734d02abb72dbfe81f2f03d157968`. The checked-in
+`checksum-Elixir.Tursox.Native.exs` was generated only by downloading those
+published assets. Follow-up CI runs the no-Rust public API/FTS/extension consumer
+on every non-musl consumer target; musl artifacts were smoke-tested in matching
+Alpine containers before publication.
