@@ -32,3 +32,7 @@ jobs:
       - run: mix local.rebar --force
       - run: mix deps.get
       - run: bin/qa_check.sh
+        env:
+          # Turso's debug MVCC bootstrap needs more than OTP's 40-kiloword
+          # default dirty-I/O scheduler stack.
+          ERL_FLAGS: "+sssdio 64"
