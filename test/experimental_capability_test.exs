@@ -29,6 +29,7 @@ defmodule Tursox.ExperimentalCapabilityTest do
 
     assert matrix.encryption.builder == :experimental_encryption
     assert matrix.encryption.option == nil
+    assert matrix.generated_columns.status == :unsafe
     assert matrix.mvcc_passive_checkpoint.option == nil
     assert matrix.strict.builder == nil
     assert matrix.triggers.builder == nil
@@ -77,19 +78,6 @@ defmodule Tursox.ExperimentalCapabilityTest do
       close(disabled_db, disabled)
     end
 
-    {generated_db, generated} =
-      open(tmp_path(root, "generated.db"), features: [:generated_columns])
-
-    :ok =
-      Connection.execute(
-        generated,
-        "CREATE TABLE generated(a INTEGER, b INTEGER GENERATED ALWAYS AS (a + 1))"
-      )
-
-    :ok = Connection.execute(generated, "INSERT INTO generated(a) VALUES (4)")
-    assert rows(generated, "SELECT a, b FROM generated") == [[4, 5]]
-    close(generated_db, generated)
-
     {rowid_db, rowid} = open(tmp_path(root, "rowid.db"), features: [:without_rowid])
     :ok = Connection.execute(rowid, "CREATE TABLE compact(id INTEGER PRIMARY KEY) WITHOUT ROWID")
     close(rowid_db, rowid)
@@ -134,8 +122,8 @@ defmodule Tursox.ExperimentalCapabilityTest do
     assert baseline == Native.resource_snapshot()
   end
 
-  test "unsafe enabled type and materialized-view probes run only in child BEAMs", %{root: root} do
-    for feature <- ["custom_types", "materialized_views"] do
+  test "unsafe enabled feature probes run only in child BEAMs", %{root: root} do
+    for feature <- ["custom_types", "generated_columns", "materialized_views"] do
       result =
         run_probe([
           "experimental-sql",
