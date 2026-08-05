@@ -67,11 +67,11 @@ defmodule Tursox.Capabilities do
       note: "file behavior is covered by the advanced schema suite"
     },
     generated_columns: %{
-      status: :supported,
+      status: :unsafe,
       builder: :experimental_generated_columns,
       option: :generated_columns,
       cargo: nil,
-      note: "virtual generated columns"
+      note: "reading generated values can terminate the process on the pin"
     },
     without_rowid: %{
       status: :supported,
