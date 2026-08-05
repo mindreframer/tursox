@@ -6,13 +6,13 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC002-spec.md` completel
 
 ## Progress
 
-- [ ] Phase 2.1: Define validated database paths, open modes, builder options, and opaque Elixir handles.
-- [ ] Phase 2.2: Implement native database resources with logical close and ancestry accounting.
-- [ ] Phase 2.3: Implement multiple native connections derived from one database resource.
-- [ ] Phase 2.4: Add connection settings, status, cache flush, and supported pragma primitives.
-- [ ] Phase 2.5: Prove file persistence and shared-versus-isolated in-memory semantics.
-- [ ] Phase 2.6: Harden close ordering, invalid options, path failures, and high database counts.
-- [ ] Phase 2.7: Pass the epic gate and create the focused Epic 2 commit.
+- [x] Phase 2.1: Define validated database paths, open modes, builder options, and opaque Elixir handles.
+- [x] Phase 2.2: Implement native database resources with logical close and ancestry accounting.
+- [x] Phase 2.3: Implement multiple native connections derived from one database resource.
+- [x] Phase 2.4: Add connection settings, status, cache flush, and supported pragma primitives.
+- [x] Phase 2.5: Prove file persistence and shared-versus-isolated in-memory semantics.
+- [x] Phase 2.6: Harden close ordering, invalid options, path failures, and high database counts.
+- [x] Phase 2.7: Pass the epic gate and create the focused Epic 2 commit.
 
 ## Implementation Steps
 
@@ -26,11 +26,11 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC002-spec.md` completel
 
 ## Quality Gate
 
-- [ ] One native database resource backs all of its derived connections.
-- [ ] In-memory sharing and database isolation tests pass.
-- [ ] Resource counters return to baseline after every lifecycle test.
-- [ ] Unsupported builder behavior is rejected rather than ignored.
-- [ ] QA passes.
+- [x] One native database resource backs all of its derived connections.
+- [x] In-memory sharing and database isolation tests pass.
+- [x] Resource counters return to baseline after every lifecycle test.
+- [x] Unsupported builder behavior is rejected rather than ignored.
+- [x] QA passes.
 
 ## Commit Rule
 

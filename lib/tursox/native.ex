@@ -32,5 +32,17 @@ defmodule Tursox.Native do
   def smoke_panic, do: :erlang.nif_error(:nif_not_loaded)
   def smoke_resource_open, do: :erlang.nif_error(:nif_not_loaded)
   def smoke_resource_close(_resource), do: :erlang.nif_error(:nif_not_loaded)
+
+  def database_open(_path, _features), do: :erlang.nif_error(:nif_not_loaded)
+  def database_close(_database), do: :erlang.nif_error(:nif_not_loaded)
+  def database_connect(_database, _busy_timeout_ms), do: :erlang.nif_error(:nif_not_loaded)
+  def connection_close(_connection), do: :erlang.nif_error(:nif_not_loaded)
+  def connection_status(_connection), do: :erlang.nif_error(:nif_not_loaded)
+  def connection_cache_flush(_connection), do: :erlang.nif_error(:nif_not_loaded)
+  def connection_pragma_query(_connection, _name), do: :erlang.nif_error(:nif_not_loaded)
+
+  def connection_pragma_update(_connection, _name, _value),
+    do: :erlang.nif_error(:nif_not_loaded)
+
   def resource_snapshot, do: :erlang.nif_error(:nif_not_loaded)
 end

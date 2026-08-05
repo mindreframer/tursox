@@ -48,7 +48,8 @@ defmodule Tursox.MixProject do
         "SECURITY.md",
         "docs/architecture.md",
         "docs/capabilities.md",
-        "docs/compatibility/turso-0.7.2.md"
+        "docs/compatibility/turso-0.7.2.md",
+        "docs/databases-and-connections.md"
       ],
       source_ref: "v#{@version}",
       source_url: @source_url

@@ -43,16 +43,20 @@ Epic 2 may expose these opt-in `Builder` switches, all present in 0.7.2:
 `experimental_generated_columns`, `experimental_index_method`,
 `experimental_materialized_views`, `experimental_vacuum`,
 `experimental_multiprocess_wal`, `experimental_without_rowid`, and
-`experimental_mvcc_passive_checkpoint`. No builder switch is currently exposed.
+`experimental_mvcc_passive_checkpoint`. These switches are exposed as explicit
+atoms in `Tursox.Database`'s `:features` option and covered by lifecycle tests.
 Encryption requires a separate validated key contract and remains unsupported
 until implemented. `experimental_triggers` and `experimental_strict` are
 compatibility no-ops because those features are always enabled.
 
-Selected stable APIs for subsequent epics are:
+Selected stable APIs are:
 
-* `Builder::new_local`, `Builder::build`, `Database::connect`;
-* connection query, execute, batch, prepare, pragma query/update,
-  last-insert-rowid, cache flush, autocommit, and busy timeout;
+* `Builder::new_local`, selected feature methods, `Builder::build`, and
+  `Database::connect` — used by Epic 2;
+* connection pragma query/update, cache flush, autocommit, and busy timeout —
+  used by Epic 2;
+* connection general query, execute, batch, prepare, and last-insert-rowid —
+  selected for Epic 3;
 * real `Statement::query`, `execute`, columns, reset, and affected changes;
 * incremental `Rows::next` and ordered row/column access;
 * none, positional, and prefixed named `IntoParams` values;
@@ -60,7 +64,7 @@ Selected stable APIs for subsequent epics are:
 * distinct busy, busy-snapshot, interrupt, constraint, readonly, database-full,
   misuse, corrupt/not-a-database, I/O, conversion, and general errors.
 
-Each item becomes "used" only when its implementation and executable tests land
+Every item is marked used only when its implementation and executable tests land
 in the matching epic. This avoids claiming behavior from source inspection alone.
 
 ## Transactions and MVCC
