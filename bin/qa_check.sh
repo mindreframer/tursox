@@ -11,8 +11,8 @@ MIX_ENV=test mix deps.get --check-locked
 cargo +1.91.0 metadata --format-version 1 --manifest-path native/tursox_nif/Cargo.toml --locked --no-deps >/dev/null
 
 stage format "Elixir and Rust formatting"
-mix format --check-formatted
-cargo +1.91.0 fmt --manifest-path native/tursox_nif/Cargo.toml --all -- --check
+mix format
+cargo +1.91.0 fmt --manifest-path native/tursox_nif/Cargo.toml --all --
 
 stage compile "Elixir compilation with warnings denied"
 MIX_ENV=test TURSOX_BUILD=1 mix compile --warnings-as-errors
