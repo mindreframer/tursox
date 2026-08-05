@@ -5,6 +5,7 @@
 - **Primary interface:** Elixir
 - **Native implementation:** Rust via Rustler
 - **Engine baseline:** `turso = 0.7.2` (exact stable pin; verify before Epic 1 closes)
+- **Required execution reference:** `@meta/@pm/roadmap001/REFERENCES.md`
 
 ## 1. Goal
 
@@ -14,17 +15,20 @@ The first release must preserve Turso's real resource model: one database handle
 
 MVCC is a first-class capability. Applications must be able to select `journal_mode: :mvcc`, use `BEGIN CONCURRENT`, distinguish retryable snapshot conflicts, tune supported checkpoint behavior, and verify concurrent write behavior through tests.
 
-## 2. Research Baseline
+## 2. Research Baseline and Lookup Rules
 
-The roadmap was prepared against these local references on 2026-08-05:
+The complete source catalog, exact local paths, canonical remote URLs, revisions, relevant files, retrieval commands, precedence rules, and encoded findings are in `@meta/@pm/roadmap001/REFERENCES.md`. Reading that file is mandatory before implementation.
 
-- Turso source at revision `2bdeb831796f62b4ff2f8393f93ddc1a17ebba50` (`0.8.0-pre.2` on `main`).
-- Latest stable crates.io release `turso 0.7.2`; prerelease `0.8.0-pre.2` is not the initial release baseline.
-- `ex_turso` in Concord at revision `9400a1fc49e4a06511f4fcbfb62a3d17c50f6c02`.
-- Exqlite at revision `f92573ba188a4794ddc70e9a76c7e375d579f6a9` for familiar low-level Elixir SQLite conventions.
-- Parquex as the structural reference for Rustler, exact dependency pins, QA, packaging, precompiled NIFs, and release verification.
+Reference IDs used by this roadmap are:
 
-Epic 1 must record the exact Turso source/API observations that apply to the selected stable crate. Behavior found only on Turso `main` must not be advertised unless the dependency is deliberately changed and pinned.
+- **R1:** exact `turso 0.7.2` crate source and versioned docs — implementation authority.
+- **R2:** Turso development source at local path `/Users/roman/Desktop/work/prj.ideas/S3MUX/TOOLS_TURSO/turso`, revision `2bdeb831796f62b4ff2f8393f93ddc1a17ebba50` — forward context only.
+- **R3:** `ex_turso` at `/Users/roman/Desktop/work/prj.ideas/S3MUX/TOOLS_TURSO/concord/apps/ex_turso`, parent revision `9400a1fc49e4a06511f4fcbfb62a3d17c50f6c02` — selective design input.
+- **R4:** Exqlite at `/Users/roman/Desktop/work/prj.ideas/S3MUX/TOOLS_TURSO/exqlite`, revision `f92573ba188a4794ddc70e9a76c7e375d579f6a9` — SQLite-shaped Elixir conventions.
+- **R5:** Parquex at `/Users/roman/Desktop/work/prj.ideas/S3MUX/parquex`, revision `1b89b6d5ecf6ac23ac2c0a3ca53fee40a6c4c433` — project, QA, packaging, and release structure.
+- **R6–R9:** version-matched Rustler/RustlerPrecompiled, DBConnection, SQLite semantic, and Elixir release/observability references.
+
+The local paths are optional read-only conveniences, never dependencies. `REFERENCES.md` provides exact clone commands and sufficient encoded findings when those paths are absent. Behavior found only on Turso `main` must not be advertised for stable `0.7.2`. In particular, stable `0.7.2` lacks the Rust `TransactionBehavior::Concurrent` variant; Epic 4 must use tested public SQL or deliberately revise the pin as described in finding F5.
 
 ## 3. Key Direction
 

@@ -4,6 +4,10 @@
 
 Provide a real SQLite-like statement interface while preserving ordered results and bounded query transfer.
 
+## Required References
+
+Read `@meta/@pm/roadmap001/REFERENCES.md`, especially R1 `src/lib.rs`, `rows.rs`, `params.rs`, and `value.rs`; R4's low-level conventions; and findings F2 and F3.
+
 ## Scope
 
 In scope:

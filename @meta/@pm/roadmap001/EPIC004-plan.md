@@ -1,5 +1,9 @@
 # EPIC004 Plan: Transactions and MVCC
 
+## Required Reading
+
+Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC004-spec.md` completely before Phase 4.1; finding F5 governs concurrent mode on stable `0.7.2`.
+
 ## Progress
 
 - [ ] Phase 4.1: Define transaction ownership, nesting, failure, and retry contracts.
@@ -13,8 +17,8 @@
 ## Implementation Steps
 
 1. Add low-level transaction operations and a rollback-safe callback wrapper.
-2. Map transaction modes exactly, reject unsafe nesting, and prevent same-connection interleaving in managed usage.
-3. Set and verify journal mode; validate incompatible builder/connection options.
+2. Map deferred/immediate/exclusive through R1's stable API; implement concurrent through tested `BEGIN CONCURRENT` SQL per finding F5 unless the pinned crate is explicitly revised. Reject unsafe nesting and prevent same-connection interleaving in managed usage.
+3. Set and verify journal mode using runtime probes; validate incompatible builder/connection options.
 4. Expand native error classification and implement finite callback-level retry policy.
 5. Add version-gated checkpoint threshold/passive/manual operations with documented result shapes.
 6. Build deterministic barrier-based MVCC and mixed-mode tests, including reopen and integrity checks.

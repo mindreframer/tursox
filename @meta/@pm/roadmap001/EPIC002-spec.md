@@ -4,6 +4,10 @@
 
 Expose Turso's database/connection split faithfully so one open database can safely create many independently configured connections.
 
+## Required References
+
+Read `@meta/@pm/roadmap001/REFERENCES.md`, especially R1 files `src/lib.rs` and `src/connection.rs`, plus findings F1, F2, F6, F7, and F8. R2 is forward context only.
+
 ## Scope
 
 In scope:

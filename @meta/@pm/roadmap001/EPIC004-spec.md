@@ -4,6 +4,10 @@
 
 Make transaction safety and Turso MVCC explicit, testable, and useful for concurrent embedded workloads.
 
+## Required References
+
+Read `@meta/@pm/roadmap001/REFERENCES.md`, especially R1 `src/transaction.rs`, R2 transaction/compatibility files, and findings F4–F7. Finding F5 is binding: stable `0.7.2` has no Rust `Concurrent` enum variant, so use tested public SQL or revise the pin explicitly.
+
 ## Scope
 
 In scope:

@@ -4,6 +4,10 @@
 
 Stabilize the direct, pooled, MVCC, and multi-database APIs and release `0.1.0` with verified precompiled native artifacts.
 
+## Required References
+
+Read `@meta/@pm/roadmap001/REFERENCES.md`, especially R5's exact scripts/workflows and finding F10, plus R6's version-matched RustlerPrecompiled artifact/checksum rules. R5 supplies structure only; Tursox target support must be independently built and smoked.
+
 ## Scope
 
 In scope:
@@ -14,7 +18,7 @@ In scope:
 - safe logs/errors/inspection audits
 - README, guides, architecture docs, changelog, license/notices, and security policy
 - package metadata and Hex package audit
-- CI matrix and precompiled NIF pipeline modeled on Parquex
+- CI matrix and precompiled NIF pipeline structurally informed by the exact R5 files cataloged in `REFERENCES.md`
 - source-build and no-Rust precompiled consumer smoke tests
 - synchronized `0.1.0` versioning and release artifacts
 

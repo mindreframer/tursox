@@ -1,5 +1,9 @@
 # EPIC007 Plan: Hardening, Documentation, and Initial Release
 
+## Required Reading
+
+Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC007-spec.md` completely before Phase 7.1; R5 is structural guidance only.
+
 ## Progress
 
 - [ ] Phase 7.1: Stabilize names, options, defaults, errors, result shapes, and compatibility guarantees.
@@ -16,7 +20,7 @@
 2. Emit redacted telemetry and expose deterministic resource gauges for operations and tests.
 3. Run bounded-memory, scheduler responsiveness, high-cardinality, failure, and lifecycle suites.
 4. Test every documented example and publish an exact Turso/SQLite capability matrix.
-5. Mirror Parquex's pinned CI/release design, adapting artifact names and Turso native dependencies.
+5. Use only the exact R5 files cataloged in `REFERENCES.md` as CI/release structure examples; independently adapt and verify Tursox artifact names, dependencies, targets, licenses, and smoke behavior.
 6. Audit the unpacked Hex package and every precompiled consumer with Rust hidden; synchronize release metadata.
 7. Run full QA and release verification, then commit only when all advertised artifacts are proven.
 

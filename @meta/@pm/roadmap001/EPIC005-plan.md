@@ -1,5 +1,9 @@
 # EPIC005 Plan: Shared-Handle DBConnection Pool
 
+## Required Reading
+
+Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC005-spec.md` completely before Phase 5.1; inspect the exact locked DBConnection version per R7.
+
 ## Progress
 
 - [ ] Phase 5.1: Define pool ownership, query/result, and DBConnection compatibility contracts.
@@ -12,8 +16,8 @@
 
 ## Implementation Steps
 
-1. Add `Tursox.Query`, `Tursox.Result`, and the DBConnection protocol implementation.
-2. Build a database-owner/pool lifecycle that passes one resource to every worker.
+1. Read R7 version-matched docs/source, then add `Tursox.Query`, `Tursox.Result`, and the DBConnection protocol implementation using its exact callback tuples.
+2. Use R3 only as a cautionary/design reference; build a database-owner/pool lifecycle that passes one R1 database resource to every worker.
 3. Map DBConnection callbacks to the direct native resources and stable errors.
 4. Back cursor callbacks with bounded fetch and deterministic deallocation.
 5. Forward transaction modes and verify checkout exclusivity.

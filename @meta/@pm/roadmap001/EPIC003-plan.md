@@ -1,5 +1,9 @@
 # EPIC003 Plan: Prepared Statements and Bounded Row Cursors
 
+## Required Reading
+
+Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC003-spec.md` completely before Phase 3.1.
+
 ## Progress
 
 - [ ] Phase 3.1: Define stable value, parameter, column, row, and result contracts.

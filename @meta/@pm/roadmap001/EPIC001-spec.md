@@ -4,12 +4,11 @@
 
 Establish the Elixir/Rust boundary and one deterministic quality gate before database behavior is added.
 
-## Reference Inputs
+## Required References
 
 - `@meta/@pm/ROADMAP001.md`
-- Turso stable Rust API and local source revision recorded in the roadmap
-- `ex_turso` native boundary and error classifier
-- Parquex Rustler/precompiled project structure
+- `@meta/@pm/roadmap001/REFERENCES.md`, especially R1, R3, R5, R6 and findings F1–F10
+- R1 exact crate source is the dependency authority; R2–R5 are read-only design references and may be absent locally
 
 ## Scope
 

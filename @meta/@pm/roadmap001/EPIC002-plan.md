@@ -1,5 +1,9 @@
 # EPIC002 Plan: Database and Connection Resources
 
+## Required Reading
+
+Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC002-spec.md` completely before Phase 2.1.
+
 ## Progress
 
 - [ ] Phase 2.1: Define validated database paths, open modes, builder options, and opaque Elixir handles.

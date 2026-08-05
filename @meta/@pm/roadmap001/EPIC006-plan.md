@@ -1,5 +1,9 @@
 # EPIC006 Plan: Supervised Multi-Database Management
 
+## Required Reading
+
+Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC006-spec.md` completely before Phase 6.1.
+
 ## Progress
 
 - [ ] Phase 6.1: Define manager supervision, naming, tenant identity, ownership, and close contracts.

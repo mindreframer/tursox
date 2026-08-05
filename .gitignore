@@ -22,4 +22,8 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 tursox-*.tar
 
+# Native source-build output and copied NIF artifacts.
+/native/tursox_nif/target/
+/priv/native/
+
 @meta/@llm/

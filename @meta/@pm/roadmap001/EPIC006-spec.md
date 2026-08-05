@@ -4,6 +4,10 @@
 
 Offer an optional building block for services that keep many tenant databases open while preserving per-database isolation and caller-controlled policy.
 
+## Required References
+
+Read `@meta/@pm/roadmap001/REFERENCES.md`, especially the source-authority rules, findings F1 and F10, and R7 for pool ownership behavior. No sibling project defines the manager contract; this epic spec and ROADMAP001 are authoritative.
+
 ## Scope
 
 In scope:

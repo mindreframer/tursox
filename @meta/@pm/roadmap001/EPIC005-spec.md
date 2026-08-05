@@ -2,7 +2,11 @@
 
 ## Purpose
 
-Provide an idiomatic pooled API without repeating `ex_turso`'s one-database-open-per-worker design.
+Provide an idiomatic pooled API without repeating R3 `ex_turso`'s one-database-open-per-worker design.
+
+## Required References
+
+Read `@meta/@pm/roadmap001/REFERENCES.md`, especially R3's listed DBConnection files, R7's version-matched callback contract, and findings F1, F2, and F9. DBConnection source/docs for the locked version override callback shapes copied from R3 or R4.
 
 ## Scope
 
