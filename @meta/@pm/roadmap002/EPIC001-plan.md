@@ -2,13 +2,13 @@
 
 ## Progress
 
-- [ ] Phase 1.1: Define the core SQL behavior matrix and shared assertion fixtures.
-- [ ] Phase 1.2: Cover DDL, CRUD, values, expressions, joins, grouping, and compound queries.
-- [ ] Phase 1.3: Cover constraints, foreign keys, errors, and failure atomicity.
-- [ ] Phase 1.4: Cover prepared statements, bindings, cursor chunks, reset, and batches.
-- [ ] Phase 1.5: Cover transactions, connection visibility, persistence, and reopen.
-- [ ] Phase 1.6: Run representative behavior through pools/managers and audit resource cleanup.
-- [ ] Phase 1.7: Publish the baseline, pass QA, and commit Epic 1.
+- [x] Phase 1.1: Define the core SQL behavior matrix and shared assertion fixtures.
+- [x] Phase 1.2: Cover DDL, CRUD, values, expressions, joins, grouping, and compound queries.
+- [x] Phase 1.3: Cover constraints, foreign keys, errors, and failure atomicity.
+- [x] Phase 1.4: Cover prepared statements, bindings, cursor chunks, reset, and batches.
+- [x] Phase 1.5: Cover transactions, connection visibility, persistence, and reopen.
+- [x] Phase 1.6: Run representative behavior through pools/managers and audit resource cleanup.
+- [x] Phase 1.7: Publish the baseline, pass QA, and commit Epic 1.
 
 ## Implementation Steps
 
@@ -22,11 +22,11 @@
 
 ## Quality Gate
 
-- [ ] Core file and memory suites pass.
-- [ ] Commit, rollback, and reopen behavior is deterministic.
-- [ ] Direct, pool, and manager smoke behavior agrees.
-- [ ] Failures leave no leaked resources or partial writes.
-- [ ] QA passes.
+- [x] Core file and memory suites pass.
+- [x] Commit, rollback, and reopen behavior is deterministic.
+- [x] Direct, pool, and manager smoke behavior agrees.
+- [x] Failures leave no leaked resources or partial writes.
+- [x] QA passes.
 
 ## Commit Rule
 
