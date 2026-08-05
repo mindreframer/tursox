@@ -17,5 +17,5 @@
 - Caller-supervised multi-database managers with atomic admission, canonical-path
   protection, capacity limits, bounded close, persistent restart, safe listing, and no dynamic atoms.
 - Redacted duration/result telemetry and deterministic native resource gauges.
-- Seven-target NIF 2.16 build/smoke workflow, source-package audit, no-Rust consumer gate,
-  release integrity documentation, and third-party notices.
+- Seven-target NIF 2.16 build/smoke workflow, no-Rust consumer gate, release integrity
+  documentation, and third-party notices.

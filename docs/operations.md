@@ -42,7 +42,6 @@ resources return errors without exposing opaque references or values.
 
 ## Release integrity
 
-`bin/package_audit.sh` builds and compiles the unpacked Hex source package.
 `.github/workflows/precompiled-release.yml` builds the exact seven-target NIF
 2.16 set, directly loads each artifact, and validates archive names/content.
 Publishing is an explicit manual workflow input. Checksums must be generated

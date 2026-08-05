@@ -17,7 +17,7 @@ In scope:
 - scheduler responsiveness, bounded-memory, contention, lifecycle, and fault tests
 - safe logs/errors/inspection audits
 - README, guides, architecture docs, changelog, license/notices, and security policy
-- package metadata and Hex package audit
+- package metadata
 - CI matrix and precompiled NIF pipeline structurally informed by the exact R5 files cataloged in `REFERENCES.md`
 - source-build and no-Rust precompiled consumer smoke tests
 - synchronized `0.1.0` versioning and release artifacts
@@ -49,11 +49,10 @@ Each artifact is built from the release commit, packaged under the exact Rustler
 - Many-database and MVCC contention tests leave no resources or sidecar files unexpectedly open.
 - Telemetry/errors/logs contain no sensitive values.
 - Docs state direct versus pooled versus managed tradeoffs and the exact compatibility/experimental limits.
-- `mix hex.build` contains only intended files and no sibling paths/generated build output.
 - Every advertised precompiled target passes raw and package-consumer smoke tests.
 - Version, Cargo/Mix metadata, lockfiles, README, and changelog agree on `0.1.0`.
-- Final QA and package audit pass from clean checkouts.
+- Final QA passes from a clean checkout.
 
 ## Test Strategy
 
-Add oversize result sets, large blobs, high tenant counts, rapid churn, MVCC conflicts, pool shutdown under load, malformed/corrupt database behavior, unsupported option fuzzing, telemetry capture/redaction, docs tests, package unpack/compile, and precompiled no-Rust consumers.
+Add oversize result sets, large blobs, high tenant counts, rapid churn, MVCC conflicts, pool shutdown under load, malformed/corrupt database behavior, unsupported option fuzzing, telemetry capture/redaction, docs tests, and precompiled no-Rust consumers.

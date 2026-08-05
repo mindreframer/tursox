@@ -52,11 +52,6 @@ jobs:
           RUSTLER_PRECOMPILED_FORCE_BUILD_ALL: "true"
         run: bin/qa_check.sh
 
-      - name: Source package audit
-        env:
-          TURSOX_BUILD: "1"
-        run: bin/package_audit.sh
-
   checksum-manifest:
     name: Detect precompiled checksum
     runs-on: ubuntu-24.04

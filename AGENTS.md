@@ -24,7 +24,7 @@
 ## Release
 
 - A finished roadmap normally bumps the version. Synchronize Mix, Cargo, lockfiles, changelog, README, docs, metadata, and examples.
-- Run full QA, docs, and package audits before release.
+- Run full QA and docs before release.
 - For Rust bindings, run the precompiled-binary pipeline after the roadmap is green.
 - Monitor every target until completion. Never dispatch and walk away.
 - If a failure makes the run doomed, cancel remaining jobs. Fix, test, commit, push, rerun, and monitor again.

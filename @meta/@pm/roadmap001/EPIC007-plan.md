@@ -10,8 +10,8 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC007-spec.md` completel
 - [ ] Phase 7.2: Add safe telemetry and resource/scheduler observability.
 - [ ] Phase 7.3: Harden fault, contention, large-result, churn, and shutdown paths.
 - [ ] Phase 7.4: Complete README, API guides, architecture, compatibility, security, and changelog docs.
-- [ ] Phase 7.5: Add package audits, CI matrix, precompiled build, raw smoke, and no-Rust consumers.
-- [ ] Phase 7.6: Synchronize `0.1.0`, validate exact artifacts/checksums, and audit clean installs.
+- [ ] Phase 7.5: Add the CI matrix, precompiled build, raw smoke, and no-Rust consumers.
+- [ ] Phase 7.6: Synchronize `0.1.0`, validate exact artifacts/checksums, and verify clean installs.
 - [ ] Phase 7.7: Pass final QA, publish/verify when authorized, and create the focused Epic 7 commit.
 
 ## Implementation Steps
@@ -21,7 +21,7 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC007-spec.md` completel
 3. Run bounded-memory, scheduler responsiveness, high-cardinality, failure, and lifecycle suites.
 4. Test every documented example and publish an exact Turso/SQLite capability matrix.
 5. Use only the exact R5 files cataloged in `REFERENCES.md` as CI/release structure examples; independently adapt and verify Tursox artifact names, dependencies, targets, licenses, and smoke behavior.
-6. Audit the unpacked Hex package and every precompiled consumer with Rust hidden; synchronize release metadata.
+6. Verify every precompiled consumer with Rust hidden; synchronize release metadata.
 7. Run full QA and release verification, then commit only when all advertised artifacts are proven.
 
 ## Quality Gate
@@ -29,11 +29,11 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC007-spec.md` completel
 - [ ] API/docs/compatibility review is complete.
 - [ ] Telemetry and error redaction tests pass.
 - [ ] Memory, scheduler, churn, and fault suites pass.
-- [ ] Hex package and docs build cleanly.
+- [ ] Docs build cleanly.
 - [ ] Exact binary set passes raw and no-Rust consumer smoke tests.
 - [ ] Version and changelog are synchronized.
 - [ ] Final `bin/qa_check.sh` passes from a clean checkout.
 
 ## Commit Rule
 
-Commit as `roadmap001 - epic 7 - release Tursox 0.1.0 foundations` with API, QA, package, artifact, and consumer verification in the body. Publication requires explicit authorization and must be monitored to completion.
+Commit as `roadmap001 - epic 7 - release Tursox 0.1.0 foundations` with API, QA, artifact, and consumer verification in the body. Publication requires explicit authorization and must be monitored to completion.

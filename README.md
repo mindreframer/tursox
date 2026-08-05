@@ -71,7 +71,6 @@ returns logical native resource gauges.
 
 ```sh
 bin/qa_check.sh
-bin/package_audit.sh
 ```
 
 No sibling checkout or network service is required for normal QA. Precompiled

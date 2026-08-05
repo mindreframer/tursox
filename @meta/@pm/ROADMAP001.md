@@ -231,7 +231,7 @@ Build an optional manager that supervises many isolated database/pool entries, s
 
 ### Epic 7 — Hardening, Documentation, and Initial Release
 
-Add observability, stress and lifecycle coverage, compatibility documentation, precompiled NIF automation, package audits, and release `0.1.0`.
+Add observability, stress and lifecycle coverage, compatibility documentation, precompiled NIF automation, and release `0.1.0`.
 
 ## 13. Dependency Order
 
