@@ -12,7 +12,7 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC007-spec.md` completel
 - [x] Phase 7.4: Complete README, API guides, architecture, compatibility, security, and changelog docs.
 - [x] Phase 7.5: Add the CI matrix, precompiled build, raw smoke, and no-Rust consumers.
 - [x] Phase 7.6: Synchronize `0.1.0`, validate exact artifacts/checksums, and verify clean installs.
-- [ ] Phase 7.7: Pass final QA, publish/verify when authorized, and create the focused Epic 7 commit.
+- [x] Phase 7.7: Pass final QA, publish/verify when authorized, and create the focused Epic 7 commit.
 
 ## Implementation Steps
 
