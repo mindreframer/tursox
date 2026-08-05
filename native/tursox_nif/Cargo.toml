@@ -1,6 +1,6 @@
 [package]
 name = "tursox_nif"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 publish = false
 
@@ -14,11 +14,15 @@ nif_version_2_16 = ["rustler/nif_version_2_16"]
 [dependencies]
 rustler = "=0.38.0"
 tokio = { version = "=1.47.1", features = ["rt-multi-thread"] }
-# FTS is deliberate: it adds Tantivy-backed index support to every source and
-# precompiled artifact while retaining the pinned engine and disabled allocator.
-turso = { version = "=0.7.2", default-features = false, features = ["fts"] }
+# FTS and portable crypto are deliberate in every source/precompiled artifact.
+# Keep mimalloc disabled because a dependency-owned global allocator is unsafe
+# inside the host BEAM process.
+turso = { version = "=0.7.2", default-features = false, features = ["fts", "pure-rust-crypto"] }
 
 # Tantivy 0.26.0 requires oneshot 0.1.13, whose crates.io index entry is not
 # currently downloadable. Vendor the exact upstream v0.1.13 source and licenses.
 [patch.crates-io]
 oneshot = { path = "vendor/oneshot" }
+# Exact published 0.7.2 source with one narrow Builder adapter exposing the
+# already-present SDK `autovacuum` switch omitted by the top-level crate.
+turso = { path = "vendor/turso" }

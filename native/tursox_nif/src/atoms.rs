@@ -24,6 +24,7 @@ rustler::atoms! {
     database_close,
     database_connect,
     connection_close,
+    connection_load_extension,
     connection_status,
     connection_cache_flush,
     connection_pragma_query,

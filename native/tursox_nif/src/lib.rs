@@ -39,8 +39,23 @@ mod tests {
 
     #[test]
     fn builder_feature_allowlist_is_strict() {
-        assert!(supported_builder_feature("attach"));
-        assert!(!supported_builder_feature("mvcc_passive_checkpoint"));
+        for feature in [
+            "attach",
+            "autovacuum",
+            "custom_types",
+            "encryption",
+            "generated_columns",
+            "index_method",
+            "materialized_views",
+            "multiprocess_wal",
+            "mvcc_passive_checkpoint",
+            "runtime_extensions",
+            "vacuum",
+            "views",
+            "without_rowid",
+        ] {
+            assert!(supported_builder_feature(feature), "missing {feature}");
+        }
         assert!(!supported_builder_feature("unknown"));
     }
 }

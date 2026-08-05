@@ -8,8 +8,14 @@ defmodule Tursox.CapabilityReportTest do
       Code.eval_file("docs/compatibility/turso-0.7.2-roadmap002.exs")
 
     assert snapshot == Capabilities.report()
-    assert snapshot.engine == %{crate: "turso", version: "0.7.2", cargo_features: [:fts]}
-    assert snapshot.tursox == "0.2.0"
+
+    assert snapshot.engine == %{
+             crate: "turso",
+             version: "0.7.2",
+             cargo_features: [:fts, :pure_rust_crypto]
+           }
+
+    assert snapshot.tursox == "0.2.1"
 
     for {_category, %{proof: proofs}} <- snapshot.categories,
         proof <- proofs do

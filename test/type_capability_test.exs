@@ -2,6 +2,7 @@ defmodule Tursox.TypeCapabilityTest do
   use Tursox.TestSupport.TmpCase, async: true
 
   alias Tursox.{Connection, Cursor, Database, Error, Statement}
+  alias Tursox.TestSupport.CapabilityProbe
 
   setup %{tmp_dir: root}, do: {:ok, root: root}
 
@@ -161,41 +162,20 @@ defmodule Tursox.TypeCapabilityTest do
     close(database, connection)
   end
 
-  test "enabled custom type families remain child-process-only", %{root: root} do
+  test "enabled custom type families prove an exact child-process memory fault", %{root: root} do
     for kind <- ~w(custom_type builtin array struct union domain) do
-      result = run_probe(kind, tmp_path(root, "#{kind}.db"))
+      result =
+        CapabilityProbe.run([
+          "type-sql",
+          kind,
+          tmp_path(root, "#{kind}.db")
+        ])
 
-      case result do
-        {:ok, {output, 0}} -> assert output =~ "result:type:#{kind}:"
-        {:ok, {_output, status}} -> assert status > 0
-        :timeout -> flunk("#{kind} probe exceeded its 15 second bound")
-      end
-    end
-  end
-
-  defp run_probe(kind, path) do
-    task =
-      Task.async(fn ->
-        System.cmd(
-          "mix",
-          ["run", "--no-compile", "bin/capability_probe.exs", "type-sql", kind, path],
-          cd: File.cwd!(),
-          env: [
-            {"MIX_ENV", "test"},
-            {"TURSOX_BUILD", "1"},
-            {"ERL_FLAGS", "+S 2:2 +SDcpu 1:1 +SDio 1 +sssdio 64"}
-          ],
-          stderr_to_stdout: true
-        )
-      end)
-
-    case Task.yield(task, 15_000) do
-      {:ok, result} ->
-        {:ok, result}
-
-      nil ->
-        Task.shutdown(task, :brutal_kill)
-        :timeout
+      assert result.kind == :signal
+      assert result.signal in [:sigbus, :sigsegv]
+      assert result.status in [135, 138, 139]
+      assert result.last_phase == "before_open"
+      refute result.output =~ "ArgumentError"
     end
   end
 

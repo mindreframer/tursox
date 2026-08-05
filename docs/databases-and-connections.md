@@ -16,10 +16,30 @@ return `:unsupported` instead of being ignored.
 {:ok, second} = Tursox.Database.connect(database)
 ```
 
-Database features are explicit through `features: [...]`. The supported names
-are returned by `Tursox.Database.builder_features/0`; all are experimental
-upstream. Encryption, custom VFS/I/O, cloud sync, and production multiprocess
-support are not exposed. `:multiprocess_wal` is rejected with MVCC.
+Database features are explicit through `features: [...]`; all eleven flags on
+Turso's experimental-features page are selectable. Known process-killing paths
+use `unsafe_features: [...]` and are returned by
+`Tursox.Database.unsafe_builder_features/0`. The old 0.2.x unsafe names in
+`:features` remain accepted for compatibility. `:multiprocess_wal` is rejected
+with MVCC.
+
+```elixir
+{:ok, encrypted} =
+  Tursox.Database.open("data/secret.db",
+    features: [:encryption],
+    encryption: [cipher: :aes_256_gcm, key: <<key::binary-size(32)>>]
+  )
+
+{:ok, edge} =
+  Tursox.Database.open("data/edge.db",
+    unsafe_features: [:views, :custom_types, :generated_columns, :runtime_extensions]
+  )
+```
+
+Encryption keys are raw 16/32-byte binaries and never enter metadata, inspect,
+telemetry, or reports. Runtime extensions execute native code inside the BEAM
+and must implement Turso's extension ABI. Custom VFS/I/O and cloud sync remain
+unexposed.
 
 Close is idempotent. Closing a database prevents new connections and invalidates
 existing descendants with `%Tursox.Error{code: :closed}`. Descendants retain the

@@ -37,10 +37,11 @@ functions = [
   smoke_panic: 0,
   smoke_resource_open: 0,
   smoke_resource_close: 1,
-  database_open: 2,
+  database_open: 4,
   database_close: 1,
   database_connect: 2,
   connection_close: 1,
+  connection_load_extension: 2,
   connection_status: 1,
   connection_cache_flush: 1,
   connection_pragma_query: 2,
@@ -131,4 +132,36 @@ Code.require_file(Path.join(root, "lib/tursox.ex"))
 {:done, [[16]]} = Tursox.Cursor.fetch(cursor, 10)
 :ok = Tursox.Connection.close(connection)
 :ok = Tursox.Database.close(database)
+
+key = :binary.copy(<<0xA5>>, 32)
+encrypted_path =
+  Path.join(System.tmp_dir!(), "tursox-encrypted-smoke-#{System.unique_integer([:positive])}.db")
+
+{:ok, encrypted} =
+  Tursox.Database.open(encrypted_path,
+    features: [:encryption],
+    encryption: [cipher: :aes_256_gcm, key: key]
+  )
+
+{:ok, encrypted_connection} = Tursox.Database.connect(encrypted)
+:ok = Tursox.Connection.execute(encrypted_connection, "CREATE TABLE secret(value TEXT)")
+:ok = Tursox.Connection.execute(encrypted_connection, "INSERT INTO secret VALUES ('encrypted')")
+:ok = Tursox.Connection.close(encrypted_connection)
+:ok = Tursox.Database.close(encrypted)
+
+{:ok, reopened} =
+  Tursox.Database.open(encrypted_path,
+    features: [:encryption],
+    encryption: [cipher: :aes_256_gcm, key: key]
+  )
+
+{:ok, reopened_connection} = Tursox.Database.connect(reopened)
+{:ok, encrypted_cursor} = Tursox.Connection.query(reopened_connection, "SELECT value FROM secret")
+{:done, [["encrypted"]]} = Tursox.Cursor.fetch(encrypted_cursor, 10)
+:ok = Tursox.Connection.close(reopened_connection)
+:ok = Tursox.Database.close(reopened)
+File.rm(encrypted_path)
+File.rm(encrypted_path <> "-wal")
+File.rm(encrypted_path <> "-shm")
+
 IO.puts("Raw and public-API precompiled NIF smoke passed: #{nif_file}")

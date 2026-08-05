@@ -2475,8 +2475,6 @@ dependencies = [
 [[package]]
 name = "turso"
 version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9491d7a80312c5abe66a4409e4dce02065503a235453c94b9e4133877e39ffc"
 dependencies = [
  "thiserror",
  "tracing",
@@ -2666,7 +2664,7 @@ dependencies = [
 
 [[package]]
 name = "tursox_nif"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "rustler",
  "tokio",

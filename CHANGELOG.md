@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.2.1 - 2026-08-05
+
+### Added
+
+- Runtime opt-ins for all eleven documented Turso experimental flags, including
+  encryption, autovacuum, and unsafe MVCC passive checkpointing.
+- Secret-redacted local encryption with all eight pinned cipher modes and
+  portable crypto in every source/precompiled build.
+- Explicit `unsafe_features` for process-killing schema/checkpoint paths while
+  preserving the 0.2.x `features` aliases.
+- Explicit native runtime extension loading through Turso's extension ABI.
+- Phase-marked subprocess evidence that distinguishes successful execution,
+  setup errors, timeouts, SIGBUS, and SIGSEGV.
+
+### Fixed
+
+- Replaced permissive tests that treated any nonzero child exit as proof of an
+  engine crash; probes now assert the exact last phase and exit class.
+- Exposed the pinned SDK's autovacuum gate through a minimal exact-0.7.2 wrapper
+  patch and documented its still-broken fresh-file persistence behavior.
+- Corrected the encryption and MVCC capability claims from “not exposed” to
+  tested runtime options.
+- Verified that SQLean 0.28.3 exports SQLite entry points and is rejected by
+  Turso's loader because it does not export Turso's `register_extension` ABI.
+
 ## 0.2.0 - 2026-08-05
 
 ### Added

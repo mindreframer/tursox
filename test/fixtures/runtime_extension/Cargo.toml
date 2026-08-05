@@ -1,0 +1,15 @@
+[package]
+name = "tursox_runtime_extension_fixture"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+static = ["turso_ext/static"]
+
+[dependencies]
+turso_ext = "=0.7.2"
+mimalloc = { version = "=0.1.48", default-features = false }

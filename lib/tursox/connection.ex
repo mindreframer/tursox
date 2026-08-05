@@ -48,6 +48,53 @@ defmodule Tursox.Connection do
   @spec close(t()) :: :ok
   def close(%__MODULE__{resource: resource}), do: Native.connection_close(resource)
 
+  @doc """
+  Loads a native Turso extension into this connection.
+
+  The database must be opened with `unsafe_features: [:runtime_extensions]`.
+  Native libraries execute arbitrary code inside the BEAM process. SQLite ABI
+  extensions are not automatically Turso ABI extensions.
+  """
+  @spec load_extension(t(), String.t()) :: :ok | {:error, Error.t()}
+  def load_extension(
+        %__MODULE__{resource: resource, database: %{unsafe_features: unsafe_features}},
+        path
+      )
+      when is_binary(path) do
+    cond do
+      :runtime_extensions not in unsafe_features ->
+        {:error,
+         %Error{
+           code: :unsupported,
+           operation: :connection_load_extension,
+           message: "runtime extension loading requires unsafe_features: [:runtime_extensions]"
+         }}
+
+      path == "" or String.contains?(path, <<0>>) ->
+        {:error,
+         %Error{
+           code: :invalid_argument,
+           operation: :connection_load_extension,
+           message: "extension path must be a non-empty path without NUL bytes"
+         }}
+
+      true ->
+        case Native.connection_load_extension(resource, Path.expand(path)) do
+          {:ok, :ok} -> :ok
+          {:error, error} -> {:error, Error.from_native(error)}
+        end
+    end
+  end
+
+  def load_extension(%__MODULE__{}, _path) do
+    {:error,
+     %Error{
+       code: :invalid_argument,
+       operation: :connection_load_extension,
+       message: "extension path must be a string"
+     }}
+  end
+
   @doc "Executes one bound SQL statement and discards execution metadata."
   @spec execute(t(), String.t(), term()) :: :ok | {:error, Error.t()}
   def execute(%__MODULE__{} = connection, sql, params \\ []) do

@@ -102,17 +102,23 @@ defmodule Tursox.DatabaseConnectionTest do
 
   test "confirmed builder switches are explicit and accepted" do
     assert :attach in Database.builder_features()
-    refute :mvcc_passive_checkpoint in Database.builder_features()
+    assert :mvcc_passive_checkpoint in Database.builder_features()
+    assert :mvcc_passive_checkpoint in Database.unsafe_builder_features()
 
     baseline = Native.resource_snapshot()
     {:ok, database} = Database.open(:memory, features: [:index_method, :without_rowid])
     assert Database.metadata(database).features == [:index_method, :without_rowid]
     :ok = Database.close(database)
 
-    assert {:error, %Error{code: :unsupported}} =
-             Database.open(:memory, features: [:mvcc_passive_checkpoint])
+    assert {:error, %Error{code: :invalid_argument}} =
+             Database.open(:memory, unsafe_features: [:mvcc_passive_checkpoint])
 
-    {:ok, mvcc} = Database.open(:memory, journal_mode: :mvcc)
+    {:ok, mvcc} =
+      Database.open(:memory,
+        journal_mode: :mvcc,
+        unsafe_features: [:mvcc_passive_checkpoint]
+      )
+
     assert Database.metadata(mvcc).journal_mode == :mvcc
     :ok = Database.close(mvcc)
     assert baseline == Native.resource_snapshot()

@@ -73,17 +73,32 @@ defmodule Tursox.Transaction do
           {:ok, [[term()]]} | {:error, Error.t()}
   def checkpoint(connection, mode \\ :passive)
 
-  def checkpoint(%Connection{database: %{journal_mode: :mvcc}}, _mode) do
-    {:error,
-     %Error{
-       code: :unsupported,
-       operation: :checkpoint,
-       message: "manual MVCC checkpoint is not safely supported by Turso 0.7.2"
-     }}
+  def checkpoint(
+        %Connection{
+          database: %{journal_mode: :mvcc, unsafe_features: unsafe_features}
+        } = connection,
+        :passive
+      ) do
+    if :mvcc_passive_checkpoint in unsafe_features do
+      do_checkpoint(connection, :passive)
+    else
+      {:error,
+       %Error{
+         code: :unsupported,
+         operation: :checkpoint,
+         message: "PASSIVE MVCC checkpoint requires unsafe_features: [:mvcc_passive_checkpoint]"
+       }}
+    end
   end
 
   def checkpoint(%Connection{} = connection, mode)
-      when mode in [:passive, :full, :restart, :truncate] do
+      when mode in [:passive, :full, :restart, :truncate],
+      do: do_checkpoint(connection, mode)
+
+  def checkpoint(%Connection{}, _mode),
+    do: invalid(:checkpoint, "checkpoint mode must be :passive, :full, :restart, or :truncate")
+
+  defp do_checkpoint(connection, mode) do
     with {:ok, cursor} <-
            Connection.query(
              connection,
@@ -93,9 +108,6 @@ defmodule Tursox.Transaction do
       {:ok, result.rows}
     end
   end
-
-  def checkpoint(%Connection{}, _mode),
-    do: invalid(:checkpoint, "checkpoint mode must be :passive, :full, :restart, or :truncate")
 
   @doc "Sets and verifies the experimental MVCC checkpoint threshold."
   @spec set_mvcc_checkpoint_threshold(Connection.t(), non_neg_integer()) ::

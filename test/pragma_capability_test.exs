@@ -2,6 +2,7 @@ defmodule Tursox.PragmaCapabilityTest do
   use Tursox.TestSupport.TmpCase, async: true
 
   alias Tursox.{Connection, Database, Error}
+  alias Tursox.TestSupport.CapabilityProbe
 
   setup %{tmp_dir: root} do
     path = tmp_path(root)
@@ -207,29 +208,16 @@ defmodule Tursox.PragmaCapabilityTest do
   end
 
   test "hazardous MVCC checkpoint path is contained by a disposable BEAM", %{tmp_dir: root} do
-    project = File.cwd!()
+    result =
+      CapabilityProbe.run([
+        "mvcc-manual-checkpoint",
+        tmp_path(root, "probe.db")
+      ])
 
-    {output, status} =
-      System.cmd(
-        "mix",
-        [
-          "run",
-          "--no-compile",
-          "bin/capability_probe.exs",
-          "mvcc-manual-checkpoint",
-          tmp_path(root, "probe.db")
-        ],
-        cd: project,
-        env: [
-          {"MIX_ENV", "test"},
-          {"TURSOX_BUILD", "1"},
-          {"ERL_FLAGS", "+S 2:2 +SDcpu 1:1 +SDio 1 +sssdio 64"}
-        ],
-        stderr_to_stdout: true
-      )
-
-    assert status == 0
-    assert output =~ "unsupported:mvcc_manual_checkpoint"
+    assert result.kind == :signal
+    assert result.signal in [:sigbus, :sigsegv]
+    assert result.status in [135, 138, 139]
+    assert result.last_phase == "mvcc_before_passive_checkpoint"
   end
 
   test "pragma validation rejects fragments and invalid argument shapes", %{

@@ -51,6 +51,7 @@ impl rustler::Resource for SmokeResource {}
 
 pub(crate) struct DatabaseResource {
     pub(crate) inner: Mutex<Option<Database>>,
+    pub(crate) load_extensions: bool,
     pub(crate) open: AtomicBool,
     pub(crate) counted: AtomicBool,
 }

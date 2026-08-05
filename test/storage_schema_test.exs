@@ -34,35 +34,24 @@ defmodule Tursox.StorageSchemaTest do
     close(aux_db, aux)
   end
 
-  test "vacuum works on initialized files; autovacuum switch is absent", %{root: root} do
-    path = tmp_path(root, "vacuum.db")
-    {database, connection} = open(path, features: [:vacuum])
-    assert {:ok, [[]]} = Connection.pragma_query(connection, :auto_vacuum)
+  test "vacuum and autovacuum remain explicit opt-ins", %{root: root} do
+    path = tmp_path(root, "compaction.db")
+    {database, connection} = open(path)
+
+    assert {:error, %Error{code: :misuse}} = Connection.execute(connection, "VACUUM")
 
     assert {:error, %Error{code: :misuse}} =
-             Connection.pragma_update(connection, :auto_vacuum, 1)
+             Connection.pragma_update(connection, :auto_vacuum, :full)
 
-    :ok =
-      Connection.execute(connection, "CREATE TABLE payload(id INTEGER PRIMARY KEY, body BLOB)")
-
-    blob = {:blob, :binary.copy(<<7>>, 4_096)}
-
-    for id <- 1..40 do
-      :ok = Connection.execute(connection, "INSERT INTO payload VALUES (?, ?)", [id, blob])
-    end
-
-    :ok = Connection.execute(connection, "DELETE FROM payload WHERE id <= 30")
-    {:ok, [[pages_before]]} = Connection.pragma_query(connection, :page_count)
-    :ok = Connection.execute(connection, "VACUUM")
-    {:ok, [[pages_after]]} = Connection.pragma_query(connection, :page_count)
-    assert pages_after <= pages_before
-    assert rows(connection, "SELECT COUNT(*) FROM payload") == [[10]]
-    assert {:ok, [["ok"]]} = Connection.pragma_query(connection, :integrity_check)
     close(database, connection)
 
-    {reopened, connection} = open(path, features: [:vacuum])
-    assert rows(connection, "SELECT COUNT(*) FROM payload") == [[10]]
-    close(reopened, connection)
+    {autovacuum_db, autovacuum} = open(path, features: [:autovacuum])
+    assert {:ok, []} = Connection.pragma_update(autovacuum, :auto_vacuum, :full)
+    close(autovacuum_db, autovacuum)
+
+    {:ok, vacuum_db} = Database.open(path, unsafe_features: [:vacuum])
+    assert Database.metadata(vacuum_db).unsafe_features == [:vacuum]
+    Database.close(vacuum_db)
   end
 
   defp open(path, opts \\ []) do

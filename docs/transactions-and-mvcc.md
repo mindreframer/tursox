@@ -32,8 +32,10 @@ the write itself rather than waiting for commit; Tursox preserves either
 conflicts. MVCC is snapshot isolation, not serializability.
 
 `mvcc_checkpoint_threshold` accepts and reads back non-negative integers. Manual
-MVCC passive checkpointing is rejected: executable 0.7.2 probing of the passive
-builder switch plus `wal_checkpoint(PASSIVE)` caused a native bus error. WAL
-checkpoint modes remain available and return the engine's ordered three-integer
-row. Tursox exposes no high-level interrupt/query timeout because the pinned
-public Rust connection API has none.
+PASSIVE checkpointing is accessible with
+`unsafe_features: [:mvcc_passive_checkpoint]`; the exact 0.7.2 probe reaches
+open/connect/write and then receives SIGBUS in `wal_checkpoint(PASSIVE)` on
+macOS, so it remains child-only in the suite. WAL checkpoint modes remain
+available and return the engine's ordered three-integer row. Tursox exposes no
+high-level interrupt/query timeout because the pinned public Rust connection
+API has none.

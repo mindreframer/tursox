@@ -2,6 +2,7 @@ defmodule Tursox.ExperimentalCapabilityTest do
   use Tursox.TestSupport.TmpCase, async: true
 
   alias Tursox.{Capabilities, Connection, Cursor, Database, Error}
+  alias Tursox.TestSupport.CapabilityProbe
 
   setup %{tmp_dir: root}, do: {:ok, root: root}
 
@@ -10,7 +11,8 @@ defmodule Tursox.ExperimentalCapabilityTest do
 
     assert Map.keys(matrix) |> Enum.sort() ==
              ~w(attach autovacuum custom_types encryption generated_columns index_method
-                materialized_views multiprocess_wal mvcc_passive_checkpoint strict triggers vacuum
+                materialized_views multiprocess_wal mvcc_passive_checkpoint runtime_extensions
+                strict triggers vacuum
                 views without_rowid)a
              |> Enum.sort()
 
@@ -24,9 +26,16 @@ defmodule Tursox.ExperimentalCapabilityTest do
     assert Enum.sort(Database.builder_features()) == exposed
 
     assert matrix.encryption.builder == :experimental_encryption
-    assert matrix.encryption.option == nil
+    assert matrix.encryption.option == :encryption
+    assert matrix.autovacuum.option == :autovacuum
     assert matrix.generated_columns.status == :unsafe
-    assert matrix.mvcc_passive_checkpoint.option == nil
+    assert matrix.mvcc_passive_checkpoint.option == :mvcc_passive_checkpoint
+    assert matrix.views.option == :views
+
+    assert Enum.sort(Database.unsafe_builder_features()) ==
+             ~w(custom_types generated_columns materialized_views mvcc_passive_checkpoint runtime_extensions vacuum views)a
+             |> Enum.sort()
+
     assert matrix.strict.builder == nil
     assert matrix.triggers.builder == nil
   end
@@ -59,6 +68,7 @@ defmodule Tursox.ExperimentalCapabilityTest do
 
   test "disabled parser gates and enabled safe switches are deterministic", %{root: root} do
     cases = [
+      {:views, "CREATE MATERIALIZED VIEW materialized AS SELECT 1"},
       {:generated_columns,
        "CREATE TABLE generated(a INTEGER, b INTEGER GENERATED ALWAYS AS (a + 1))"},
       {:without_rowid, "CREATE TABLE compact(id INTEGER PRIMARY KEY) WITHOUT ROWID"},
@@ -89,17 +99,29 @@ defmodule Tursox.ExperimentalCapabilityTest do
 
     :ok = Connection.execute(attach, "DETACH DATABASE aux")
     close(attach_db, attach)
-
-    {vacuum_db, vacuum} = open(tmp_path(root, "vacuum.db"), features: [:vacuum])
-    :ok = Connection.execute(vacuum, "CREATE TABLE initialized(value INTEGER)")
-    :ok = Connection.execute(vacuum, "VACUUM")
-    close(vacuum_db, vacuum)
   end
 
-  test "unsupported switches fail validation" do
-    for feature <- [:encryption, :autovacuum, :mvcc_passive_checkpoint, :unknown] do
-      assert {:error, %Error{code: :unsupported}} = Database.open(:memory, features: [feature])
-    end
+  test "autovacuum's omitted wrapper switch is accessible and its pinned limitation is exact", %{
+    root: root
+  } do
+    path = tmp_path(root, "autovacuum.db")
+    {disabled_db, disabled} = open(path)
+
+    assert {:error, %Error{message: message}} =
+             Connection.pragma_update(disabled, :auto_vacuum, :full)
+
+    assert message =~ "Autovacuum is not enabled"
+    close(disabled_db, disabled)
+
+    {enabled_db, enabled} = open(path, features: [:autovacuum])
+    assert {:ok, []} = Connection.pragma_update(enabled, :auto_vacuum, :full)
+    # 0.7.2 emits no result metadata and leaves the fresh-file mode at zero.
+    assert {:ok, [[]]} = Connection.pragma_query(enabled, :auto_vacuum)
+    close(enabled_db, enabled)
+  end
+
+  test "unknown switches still fail validation" do
+    assert {:error, %Error{code: :unsupported}} = Database.open(:memory, features: [:unknown])
   end
 
   test "incompatible multiprocess MVCC combination is rejected" do
@@ -110,47 +132,80 @@ defmodule Tursox.ExperimentalCapabilityTest do
              )
   end
 
-  test "unsafe enabled feature probes run only in child BEAMs", %{root: root} do
-    for feature <- ["custom_types", "generated_columns", "materialized_views"] do
-      result =
-        run_probe([
-          "experimental-sql",
-          feature,
-          tmp_path(root, "#{feature}.db")
-        ])
+  test "unsafe probes distinguish completed behavior from native memory faults", %{root: root} do
+    materialized =
+      CapabilityProbe.run([
+        "experimental-sql",
+        "views",
+        tmp_path(root, "views.db")
+      ])
 
-      case result do
-        {:ok, {output, 0}} -> assert output =~ "result:#{feature}:"
-        {:ok, {_output, status}} -> assert status > 0
-        :timeout -> flunk("#{feature} probe exceeded its 15 second bound")
-      end
+    assert_memory_fault(materialized, "materialized_views_before_create")
+
+    custom =
+      CapabilityProbe.run([
+        "experimental-sql",
+        "custom_types",
+        tmp_path(root, "custom_types.db")
+      ])
+
+    assert_memory_fault(custom, "before_open")
+
+    vacuum =
+      CapabilityProbe.run([
+        "experimental-sql",
+        "vacuum",
+        tmp_path(root, "vacuum.db")
+      ])
+
+    case vacuum.kind do
+      :success ->
+        assert vacuum.last_phase == "closed"
+        assert vacuum.output =~ "result:vacuum::ok"
+
+      :signal ->
+        assert_memory_fault(vacuum, "vacuum_before_execute")
+    end
+
+    generated =
+      CapabilityProbe.run([
+        "experimental-sql",
+        "generated_columns",
+        tmp_path(root, "generated_columns.db")
+      ])
+
+    case :os.type() do
+      {:unix, :darwin} ->
+        assert generated.kind == :success
+        assert generated.last_phase == "closed"
+        assert generated.output =~ "result:generated_columns:{:ok, [[4, 5]]}"
+
+      _ ->
+        assert_memory_fault(generated, generated.last_phase)
+
+        assert generated.last_phase in [
+                 "generated_columns_inserted",
+                 "generated_columns_queried"
+               ]
     end
   end
 
-  defp run_probe(args) do
-    task =
-      Task.async(fn ->
-        System.cmd(
-          "mix",
-          ["run", "--no-compile", "bin/capability_probe.exs" | args],
-          cd: File.cwd!(),
-          env: [
-            {"MIX_ENV", "test"},
-            {"TURSOX_BUILD", "1"},
-            {"ERL_FLAGS", "+S 2:2 +SDcpu 1:1 +SDio 1 +sssdio 64"}
-          ],
-          stderr_to_stdout: true
-        )
-      end)
+  test "unsafe passive MVCC checkpoint is selectable and exactly contained", %{root: root} do
+    result =
+      CapabilityProbe.run([
+        "mvcc-manual-checkpoint",
+        tmp_path(root, "mvcc-passive.db")
+      ])
 
-    case Task.yield(task, 15_000) do
-      {:ok, result} ->
-        {:ok, result}
+    assert_memory_fault(result, "mvcc_before_passive_checkpoint")
+  end
 
-      nil ->
-        Task.shutdown(task, :brutal_kill)
-        :timeout
-    end
+  defp assert_memory_fault(result, phase) do
+    assert result.kind == :signal
+    assert result.signal in [:sigbus, :sigsegv]
+    assert result.status in [135, 138, 139]
+    assert result.last_phase == phase
+    refute result.output =~ "ArgumentError"
   end
 
   defp open(path, opts \\ []) do

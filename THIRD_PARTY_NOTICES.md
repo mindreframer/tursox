@@ -5,8 +5,10 @@ are recorded in `native/tursox_nif/Cargo.lock` and `mix.lock`.
 
 Primary native components include:
 
-- Turso and its Turso SDK/core crates — MIT License,
-  <https://github.com/tursodatabase/turso>
+- Turso and its Turso SDK/core crates — MIT License. The exact published 0.7.2
+  top-level crate is vendored under `native/tursox_nif/vendor/turso` with a
+  narrow attributed adapter for the already-present SDK autovacuum and runtime
+  extension APIs, <https://github.com/tursodatabase/turso/tree/v0.7.2>
 - Rustler — MIT OR Apache-2.0,
   <https://github.com/rusterlium/rustler>
 - Tokio — MIT License,
@@ -20,5 +22,6 @@ Primary native components include:
 Primary Elixir components include RustlerPrecompiled (MIT), DBConnection
 (Apache-2.0), and Telemetry (Apache-2.0). Their copyright notices and complete
 license texts are available in their linked source distributions. Tursox does
-not enable Turso's optional mimalloc allocator. It deliberately enables only
-the Turso `fts` Cargo feature needed by the advertised embedded search support.
+not enable Turso's optional mimalloc allocator. It deliberately enables the
+Turso `fts` and `pure-rust-crypto` Cargo features needed by advertised search
+and portable encryption support.

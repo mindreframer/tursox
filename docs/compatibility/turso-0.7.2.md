@@ -25,11 +25,11 @@ Exact sources:
 | RustlerPrecompiled | 0.8.4 |
 | Rust | 1.91.0 (`f8297e351`) |
 
-`turso` uses `default-features = false` plus the deliberate `fts` feature.
-Tursox therefore does not install the crate's mimalloc global allocator, while
-all source/precompiled builds include the tested Tantivy-backed index method.
-Cloud sync, pure-Rust crypto, memory-yield, stacker, and test-helper features are
-disabled. Tantivy resolves exactly through the native lockfile; the unavailable
+`turso` uses `default-features = false` plus deliberate `fts` and
+`pure-rust-crypto` features. Tursox therefore does not install the crate's
+mimalloc global allocator, while all source/precompiled builds include tested
+Tantivy indexes and portable encryption. Cloud sync, memory-yield, stacker, and
+test-helper features remain disabled. Tantivy resolves exactly through the native lockfile; the unavailable
 crates.io entry for its `oneshot = 0.1.13` requirement is satisfied by the exact
 vendored upstream v0.1.13 source and licenses.
 
@@ -40,18 +40,16 @@ not advertised as release-supported until Epic 7 builds and smokes it.
 
 ## Stable source surface selected for Tursox
 
-Epic 2 may expose these opt-in `Builder` switches, all present in 0.7.2:
-`experimental_attach`, `experimental_custom_types`,
-`experimental_generated_columns`, `experimental_index_method`,
-`experimental_materialized_views`, `experimental_vacuum`,
-`experimental_multiprocess_wal`, `experimental_without_rowid`, and
-`experimental_mvcc_passive_checkpoint`. All except passive MVCC checkpointing
-are exposed as explicit atoms in `Tursox.Database`'s `:features` option and
-covered by lifecycle tests. The passive switch is rejected because executable
-0.7.2 probes found its manual checkpoint path unsafe for the VM. Encryption
-requires a separate validated key contract and remains unsupported
-until implemented. `experimental_triggers` and `experimental_strict` are
-compatibility no-ops because those features are always enabled.
+Tursox 0.2.1 exposes every switch on the current experimental-features page at
+`Database.open/2`. Safe-enough options use `features`; custom types, materialized
+views, generated columns, vacuum, and passive MVCC checkpointing use the explicit
+`unsafe_features` list because probes can signal the VM. Encryption wires both
+`experimental_encryption` and `with_encryption`, with raw key validation and no
+secret-bearing metadata. The 0.7.2 core/SDK has autovacuum but its published
+top-level Builder omits the method; the vendored exact-source crate adds only
+that forwarding flag. Runtime extension loading similarly forwards the existing
+per-connection SDK methods. `experimental_triggers` and `experimental_strict`
+remain compatibility no-ops because those features are always enabled.
 
 Selected stable APIs are:
 
@@ -79,10 +77,10 @@ Concurrent mode must execute tested `BEGIN CONCURRENT` SQL; Tursox must not refe
 to the `Concurrent` variant added after 0.7.2. `PRAGMA journal_mode = mvcc` must
 be set and read back before concurrent mode is accepted.
 
-The source exposes `experimental_mvcc_passive_checkpoint`, but a 0.7.2 runtime
-probe of `PRAGMA wal_checkpoint(PASSIVE)` with that switch caused a native bus
-error. Tursox therefore rejects the switch and manual MVCC checkpoint calls as
-`:unsupported`. `mvcc_checkpoint_threshold` accepts and reads back non-negative
+The source exposes `experimental_mvcc_passive_checkpoint`. Tursox exposes it via
+`unsafe_features: [:mvcc_passive_checkpoint]`; a phase-marked 0.7.2 probe reaches
+open, connect, and write, then receives SIGBUS in `PRAGMA wal_checkpoint(PASSIVE)`
+on macOS. `mvcc_checkpoint_threshold` accepts and reads back non-negative
 integers; the suite verifies 64. WAL `wal_checkpoint(PASSIVE)` safely returns one
 ordered three-integer row (`busy`, log frames, checkpointed frames). MVCC remains
 experimental and provides snapshot isolation, not a serializability guarantee.
@@ -91,8 +89,10 @@ experimental and provides snapshot isolation, not a serializability guarantee.
 
 The stable high-level connection has no public interrupt/query-timeout handle,
 no documented total-changes accessor, and no read-only/open-mode builder. Tursox
-does not reach into `turso_core` to synthesize those APIs. Cloud sync, remote
-access, custom I/O/VFS, and production multiprocess support are deferred.
+does not reach into `turso_core` to synthesize those APIs. Cloud sync, remote access, custom I/O/VFS, and production multiprocess support
+remain deferred. Native extension loading is available as an unsafe opt-in, but
+requires Turso's `register_extension` ABI. SQLean 0.28.3 exposes SQLite
+`sqlite3_*_init` entry points and fails cleanly at symbol resolution.
 
 ## Proof
 

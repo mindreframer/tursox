@@ -12,7 +12,7 @@ statements, and bounded row cursors. Optional shared-handle DBConnection pools
 and caller-supervised multi-database managers build on the same resources.
 There is no global registry.
 
-Version 0.2.0 pins Turso 0.7.2 and Rust 1.91.0. It deliberately enables tested
+Version 0.2.1 pins Turso 0.7.2 and Rust 1.91.0. It deliberately enables tested
 Turso FTS while MVCC and advanced builder features remain explicit experimental
 opt-ins. See the [Roadmap 2 capability report](docs/roadmap002-capabilities.md),
 [capability matrix](docs/capabilities.md), and
@@ -23,7 +23,7 @@ opt-ins. See the [Roadmap 2 capability report](docs/roadmap002-capabilities.md),
 After release, add:
 
 ```elixir
-def deps, do: [{:tursox, "~> 0.2.0"}]
+def deps, do: [{:tursox, "~> 0.2.1"}]
 ```
 
 Supported targets use NIF 2.16 precompiled binaries after their published
@@ -51,11 +51,34 @@ see [databases and connections](docs/databases-and-connections.md),
 [queries and cursors](docs/queries-and-cursors.md), and
 [transactions and MVCC](docs/transactions-and-mvcc.md).
 
-Tursox 0.2.0 verifies core SQL, safe argument-bearing PRAGMAs, STRICT and
+Tursox 0.2.1 verifies core SQL, safe argument-bearing PRAGMAs, STRICT and
 advanced schema behavior, Tantivy-backed FTS, built-in extensions, and
 platform-limited multiprocess WAL. Unsupported and unsafe pinned-engine results
-are published explicitly rather than emulated. Enable FTS indexes with
-`features: [:index_method]` when opening the database.
+are published with executable evidence. Enable ordinary experimental switches
+at database open; no consumer recompilation is required:
+
+```elixir
+{:ok, db} =
+  Tursox.Database.open("app.db",
+    features: [:index_method, :autovacuum, :attach, :without_rowid]
+  )
+```
+
+> **DANGER:** `unsafe_features` exposes pinned engine paths that may terminate
+> the entire BEAM. They are intentionally available for cutting-edge use:
+>
+> ```elixir
+> Tursox.Database.open("edge.db",
+>   journal_mode: :mvcc,
+>   unsafe_features: [:views, :custom_types, :generated_columns,
+>                     :vacuum, :mvcc_passive_checkpoint, :runtime_extensions]
+> )
+> ```
+
+Encryption is compiled into every build and accepts raw 16/32-byte keys via
+`features: [:encryption], encryption: [cipher: ..., key: ...]`. Runtime native
+libraries load with `Tursox.Connection.load_extension/2`; they must implement
+Turso's extension ABI. SQLite-only binaries such as SQLean 0.28.3 do not.
 
 ## Pool and manager
 

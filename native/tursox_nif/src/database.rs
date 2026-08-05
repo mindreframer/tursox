@@ -1,5 +1,5 @@
 use crate::atoms;
-use crate::builder::{build_database, supported_builder_feature};
+use crate::builder::{build_database, supported_builder_feature, EncryptionConfig};
 use crate::error::{classify, lock_error, NativeError};
 use crate::resources::{ConnectionResource, DatabaseResource, CONNECTIONS, DATABASES};
 use crate::runtime::runtime_for;
@@ -13,6 +13,8 @@ use std::time::Duration;
 fn database_open(
     path: String,
     features: Vec<String>,
+    encryption_cipher: Option<String>,
+    encryption_hexkey: Option<String>,
 ) -> Result<ResourceArc<DatabaseResource>, NativeError> {
     let operation = atoms::database_open();
     if let Some(feature) = features
@@ -24,13 +26,27 @@ fn database_open(
             format!("unsupported database builder feature: {feature}"),
         ));
     }
+    let load_extensions = features
+        .iter()
+        .any(|feature| feature == "runtime_extensions");
+    let encryption = match (encryption_cipher, encryption_hexkey) {
+        (Some(cipher), Some(hexkey)) => Some(EncryptionConfig { cipher, hexkey }),
+        (None, None) => None,
+        _ => {
+            return Err(NativeError::invalid(
+                operation,
+                "encryption cipher and key must be provided together",
+            ))
+        }
+    };
     let runtime = runtime_for(operation)?;
     let database = runtime
-        .block_on(build_database(&path, &features).build())
+        .block_on(build_database(&path, &features, encryption).build())
         .map_err(|error| classify(error, operation))?;
     DATABASES.fetch_add(1, Ordering::AcqRel);
     Ok(ResourceArc::new(DatabaseResource {
         inner: Mutex::new(Some(database)),
+        load_extensions,
         open: AtomicBool::new(true),
         counted: AtomicBool::new(true),
     }))
@@ -57,6 +73,9 @@ fn database_connect(
         .map_err(|error| classify(error, operation))?;
     drop(inner);
     connection
+        .set_load_extension_enabled(database.load_extensions)
+        .map_err(|error| classify(error, operation))?;
+    connection
         .busy_timeout(Duration::from_millis(busy_timeout_ms))
         .map_err(|error| classify(error, operation))?;
     CONNECTIONS.fetch_add(1, Ordering::AcqRel);
@@ -66,6 +85,22 @@ fn database_connect(
         open: AtomicBool::new(true),
         counted: AtomicBool::new(true),
     }))
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn connection_load_extension(
+    connection: ResourceArc<ConnectionResource>,
+    path: String,
+) -> Result<Atom, NativeError> {
+    let operation = atoms::connection_load_extension();
+    connection.ensure_open(operation)?;
+    let inner = connection.inner.lock().map_err(|_| lock_error(operation))?;
+    inner
+        .as_ref()
+        .ok_or_else(|| NativeError::closed(operation, "connection"))?
+        .load_extension(&path)
+        .map_err(|error| classify(error, operation))?;
+    Ok(atoms::ok())
 }
 
 #[rustler::nif(schedule = "DirtyIo")]
