@@ -27,3 +27,4 @@ tursox-*.tar
 /priv/native/
 
 @meta/@llm/
+.ngi/
