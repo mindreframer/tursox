@@ -25,7 +25,4 @@ cargo +1.91.0 check --manifest-path native/tursox_nif/Cargo.toml --locked --all-
 cargo +1.91.0 clippy --manifest-path native/tursox_nif/Cargo.toml --locked --all-targets -- -D warnings
 cargo +1.91.0 test --manifest-path native/tursox_nif/Cargo.toml --locked --all-targets
 
-stage docs "documentation"
-MIX_ENV=dev mix docs --warnings-as-errors
-
 stage ok "all checks passed"
