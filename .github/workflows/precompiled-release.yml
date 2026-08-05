@@ -231,11 +231,23 @@ jobs:
             exit 1
           fi
 
-          cat > release-notes.md <<EOF
-          Tursox ${PROJECT_VERSION} precompiled NIF release.
+          awk -v version="$PROJECT_VERSION" '
+            index($0, "## " version) == 1 { capture = 1 }
+            capture && /^## / && index($0, "## " version) != 1 { exit }
+            capture { print }
+            END { if (!capture) exit 1 }
+          ' CHANGELOG.md > release-notes.md
+          cat >> release-notes.md <<EOF
 
-          Every attached NIF ${NIF_VERSION} archive was built from this release commit and
-          directly smoke-tested before publication.
+          ### Precompiled binaries
+
+          Seven NIF ${NIF_VERSION} archives are attached for macOS aarch64/x86-64,
+          Linux aarch64/x86-64 GNU and musl, and Windows x86-64 MSVC. Every archive
+          was built from commit ${GITHUB_SHA} and directly smoke-tested before
+          publication.
+
+          See the full compatibility report:
+          https://github.com/${GITHUB_REPOSITORY}/blob/v${PROJECT_VERSION}/docs/roadmap002-capabilities.md
           EOF
           gh release create "$tag" release-assets/*.tar.gz \
             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft \

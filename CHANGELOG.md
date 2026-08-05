@@ -10,8 +10,8 @@
   configuration, integrity, WAL/MVCC, gated, and unsupported result shapes.
 - Machine-readable experimental capability metadata and generated pinned-engine
   report with subprocess containment for crash-prone probes.
-- STRICT base-type, ordinary view, generated-column, trigger, `WITHOUT ROWID`,
-  attach/detach, vacuum, and reopen/integrity coverage.
+- STRICT base-type, ordinary view, generated-column safety, trigger,
+  `WITHOUT ROWID`, attach/detach, vacuum, and reopen/integrity coverage.
 - Deliberate Tantivy-backed FTS build support with matching, scoring,
   highlighting, tokenizers, weights, DML, transaction, optimize, and reopen tests.
 - Runtime-derived UUID, regexp, vector, time, percentile, series, unavailable
