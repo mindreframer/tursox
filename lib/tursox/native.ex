@@ -44,5 +44,24 @@ defmodule Tursox.Native do
   def connection_pragma_update(_connection, _name, _value),
     do: :erlang.nif_error(:nif_not_loaded)
 
+  def connection_execute(_connection, _sql, _named, _names, _values),
+    do: :erlang.nif_error(:nif_not_loaded)
+
+  def connection_execute_batch(_connection, _sql), do: :erlang.nif_error(:nif_not_loaded)
+  def connection_prepare(_connection, _sql), do: :erlang.nif_error(:nif_not_loaded)
+  def connection_last_insert_rowid(_connection), do: :erlang.nif_error(:nif_not_loaded)
+
+  def statement_close(_statement), do: :erlang.nif_error(:nif_not_loaded)
+
+  def statement_execute(_statement, _named, _names, _values),
+    do: :erlang.nif_error(:nif_not_loaded)
+
+  def statement_query(_statement, _named, _names, _values), do: :erlang.nif_error(:nif_not_loaded)
+  def statement_reset(_statement), do: :erlang.nif_error(:nif_not_loaded)
+  def statement_columns(_statement), do: :erlang.nif_error(:nif_not_loaded)
+
+  def cursor_fetch(_cursor, _max_rows), do: :erlang.nif_error(:nif_not_loaded)
+  def cursor_close(_cursor), do: :erlang.nif_error(:nif_not_loaded)
+
   def resource_snapshot, do: :erlang.nif_error(:nif_not_loaded)
 end

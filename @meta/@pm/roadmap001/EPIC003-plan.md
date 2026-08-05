@@ -6,13 +6,13 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC003-spec.md` completel
 
 ## Progress
 
-- [ ] Phase 3.1: Define stable value, parameter, column, row, and result contracts.
-- [ ] Phase 3.2: Implement strict positional/named parameter decoding and value encoding.
-- [ ] Phase 3.3: Implement execute, execute-batch, and real prepared statement resources.
-- [ ] Phase 3.4: Implement native row cursors with bounded fetch and ordered metadata.
-- [ ] Phase 3.5: Add reset/reuse, explicit close, lazy enumeration, and conversion helpers.
-- [ ] Phase 3.6: Verify memory bounds, early halt, duplicate columns, misuse, and cleanup.
-- [ ] Phase 3.7: Pass the epic gate and create the focused Epic 3 commit.
+- [x] Phase 3.1: Define stable value, parameter, column, row, and result contracts.
+- [x] Phase 3.2: Implement strict positional/named parameter decoding and value encoding.
+- [x] Phase 3.3: Implement execute, execute-batch, and real prepared statement resources.
+- [x] Phase 3.4: Implement native row cursors with bounded fetch and ordered metadata.
+- [x] Phase 3.5: Add reset/reuse, explicit close, lazy enumeration, and conversion helpers.
+- [x] Phase 3.6: Verify memory bounds, early halt, duplicate columns, misuse, and cleanup.
+- [x] Phase 3.7: Pass the epic gate and create the focused Epic 3 commit.
 
 ## Implementation Steps
 
@@ -26,12 +26,12 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC003-spec.md` completel
 
 ## Quality Gate
 
-- [ ] Value and named/positional parameter suites pass.
-- [ ] Prepared statements are real native resources and reusable after reset.
-- [ ] Fetch size bounds every returned chunk.
-- [ ] Early halt leaves no cursor or active-statement lease.
-- [ ] Ordered duplicate columns are preserved.
-- [ ] QA passes.
+- [x] Value and named/positional parameter suites pass.
+- [x] Prepared statements are real native resources and reusable after reset.
+- [x] Fetch size bounds every returned chunk.
+- [x] Early halt leaves no cursor or active-statement lease.
+- [x] Ordered duplicate columns are preserved.
+- [x] QA passes.
 
 ## Commit Rule
 

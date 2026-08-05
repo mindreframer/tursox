@@ -55,12 +55,13 @@ Selected stable APIs are:
   `Database::connect` — used by Epic 2;
 * connection pragma query/update, cache flush, autocommit, and busy timeout —
   used by Epic 2;
-* connection general query, execute, batch, prepare, and last-insert-rowid —
-  selected for Epic 3;
-* real `Statement::query`, `execute`, columns, reset, and affected changes;
-* incremental `Rows::next` and ordered row/column access;
-* none, positional, and prefixed named `IntoParams` values;
-* `Null`, signed 64-bit `Integer`, `Real`, UTF-8 `Text`, and byte `Blob`;
+* connection execute, batch, prepare, and last-insert-rowid — used by Epic 3;
+* real `Statement::query`, `execute`, columns, reset, and affected changes —
+  used by Epic 3;
+* incremental `Rows::next` and ordered row/column access — used by Epic 3;
+* none, positional, and prefixed named `IntoParams` values — used by Epic 3;
+* `Null`, signed 64-bit `Integer`, `Real`, UTF-8 `Text`, and byte `Blob` — used
+  by Epic 3;
 * distinct busy, busy-snapshot, interrupt, constraint, readonly, database-full,
   misuse, corrupt/not-a-database, I/O, conversion, and general errors.
 

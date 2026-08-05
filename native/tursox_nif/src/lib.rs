@@ -1,15 +1,19 @@
-use rustler::{Atom, Encoder, Env, NifMap, OwnedBinary, ResourceArc, Term};
+use rustler::{Atom, Binary, Encoder, Env, NifMap, OwnedBinary, ResourceArc, Term};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::Duration;
 use tokio::runtime::{Builder as RuntimeBuilder, Runtime};
-use turso::{Builder, Connection, Database, Error as TursoError, Value};
+use turso::params::Params;
+use turso::{Builder, Connection, Database, Error as TursoError, Rows, Statement, Value};
 
 mod atoms {
     rustler::atoms! {
         ok,
         blob,
+        nil,
+        true_atom = "true",
+        false_atom = "false",
         busy,
         busy_snapshot,
         constraint,
@@ -34,6 +38,17 @@ mod atoms {
         connection_cache_flush,
         connection_pragma_query,
         connection_pragma_update,
+        connection_execute,
+        connection_execute_batch,
+        connection_prepare,
+        connection_last_insert_rowid,
+        statement_close,
+        statement_execute,
+        statement_query,
+        statement_reset,
+        statement_columns,
+        cursor_fetch,
+        cursor_close,
     }
 }
 
@@ -41,6 +56,8 @@ static RUNTIME: OnceLock<Result<Runtime, String>> = OnceLock::new();
 static SMOKE_RESOURCES: AtomicU64 = AtomicU64::new(0);
 static DATABASES: AtomicU64 = AtomicU64::new(0);
 static CONNECTIONS: AtomicU64 = AtomicU64::new(0);
+static STATEMENTS: AtomicU64 = AtomicU64::new(0);
+static CURSORS: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Debug, NifMap)]
 struct NativeError {
@@ -60,6 +77,10 @@ impl NativeError {
 
     fn internal(operation: Atom, message: impl Into<String>) -> Self {
         Self::new(atoms::internal(), operation, message)
+    }
+
+    fn invalid(operation: Atom, message: impl Into<String>) -> Self {
+        Self::new(atoms::invalid_argument(), operation, message)
     }
 
     fn closed(operation: Atom, resource: &str) -> Self {
@@ -85,7 +106,11 @@ fn classify(error: TursoError, operation: Atom) -> NativeError {
         TursoError::ConversionFailure(_) | TursoError::ToSqlConversionFailure(_) => {
             atoms::conversion()
         }
-        TursoError::QueryReturnedNoRows | TursoError::Error(_) => atoms::internal(),
+        TursoError::Error(message) if message.to_ascii_lowercase().contains("conflict") => {
+            atoms::busy_snapshot()
+        }
+        TursoError::Error(_) => atoms::misuse(),
+        TursoError::QueryReturnedNoRows => atoms::internal(),
     };
     NativeError::new(code, operation, error.to_string())
 }
@@ -138,11 +163,7 @@ impl DatabaseResource {
     }
 
     fn ensure_open(&self, operation: Atom) -> Result<(), NativeError> {
-        if self.open.load(Ordering::Acquire) {
-            Ok(())
-        } else {
-            Err(NativeError::closed(operation, "database"))
-        }
+        ensure_flag(&self.open, operation, "database")
     }
 }
 
@@ -173,11 +194,7 @@ impl ConnectionResource {
 
     fn ensure_open(&self, operation: Atom) -> Result<(), NativeError> {
         self.database.ensure_open(operation)?;
-        if self.open.load(Ordering::Acquire) {
-            Ok(())
-        } else {
-            Err(NativeError::closed(operation, "connection"))
-        }
+        ensure_flag(&self.open, operation, "connection")
     }
 }
 
@@ -189,6 +206,91 @@ impl Drop for ConnectionResource {
 
 #[rustler::resource_impl]
 impl rustler::Resource for ConnectionResource {}
+
+struct StatementResource {
+    inner: Mutex<Option<Statement>>,
+    connection: ResourceArc<ConnectionResource>,
+    open: AtomicBool,
+    active: AtomicBool,
+    counted: AtomicBool,
+}
+
+impl StatementResource {
+    fn close(&self) {
+        self.open.store(false, Ordering::Release);
+        if let Ok(mut inner) = self.inner.lock() {
+            inner.take();
+        }
+        decrement_once(&self.counted, &STATEMENTS);
+    }
+
+    fn ensure_open(&self, operation: Atom) -> Result<(), NativeError> {
+        self.connection.ensure_open(operation)?;
+        ensure_flag(&self.open, operation, "statement")
+    }
+
+    fn ensure_idle(&self, operation: Atom) -> Result<(), NativeError> {
+        if self.active.load(Ordering::Acquire) {
+            Err(NativeError::new(
+                atoms::misuse(),
+                operation,
+                "statement has an active cursor",
+            ))
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl Drop for StatementResource {
+    fn drop(&mut self) {
+        self.close();
+    }
+}
+
+#[rustler::resource_impl]
+impl rustler::Resource for StatementResource {}
+
+struct CursorResource {
+    inner: Mutex<Option<Rows>>,
+    statement: ResourceArc<StatementResource>,
+    open: AtomicBool,
+    exhausted: AtomicBool,
+    counted: AtomicBool,
+}
+
+impl CursorResource {
+    fn close(&self) {
+        self.open.store(false, Ordering::Release);
+        if let Ok(mut inner) = self.inner.lock() {
+            inner.take();
+        }
+        self.statement.active.store(false, Ordering::Release);
+        decrement_once(&self.counted, &CURSORS);
+    }
+
+    fn ensure_open(&self, operation: Atom) -> Result<(), NativeError> {
+        self.statement.ensure_open(operation)?;
+        ensure_flag(&self.open, operation, "cursor")
+    }
+}
+
+impl Drop for CursorResource {
+    fn drop(&mut self) {
+        self.close();
+    }
+}
+
+#[rustler::resource_impl]
+impl rustler::Resource for CursorResource {}
+
+fn ensure_flag(flag: &AtomicBool, operation: Atom, resource: &str) -> Result<(), NativeError> {
+    if flag.load(Ordering::Acquire) {
+        Ok(())
+    } else {
+        Err(NativeError::closed(operation, resource))
+    }
+}
 
 fn decrement_once(flag: &AtomicBool, counter: &AtomicU64) {
     if flag.swap(false, Ordering::AcqRel) {
@@ -352,6 +454,7 @@ fn connection_cache_flush(
     Ok(atoms::ok())
 }
 
+#[derive(Debug)]
 enum SqlValue {
     Null,
     Integer(i64),
@@ -375,7 +478,7 @@ impl From<Value> for SqlValue {
 impl Encoder for SqlValue {
     fn encode<'a>(&self, env: Env<'a>) -> Term<'a> {
         match self {
-            Self::Null => rustler::types::atom::nil().encode(env),
+            Self::Null => atoms::nil().encode(env),
             Self::Integer(value) => value.encode(env),
             Self::Real(value) => value.encode(env),
             Self::Text(value) => value.encode(env),
@@ -385,6 +488,73 @@ impl Encoder for SqlValue {
                 (atoms::blob(), binary.release(env)).encode(env)
             }
         }
+    }
+}
+
+fn decode_value(term: Term<'_>, index: usize, operation: Atom) -> Result<Value, NativeError> {
+    if let Ok((tag, binary)) = term.decode::<(Atom, Binary)>() {
+        if tag == atoms::blob() {
+            return Ok(Value::Blob(binary.as_slice().to_vec()));
+        }
+    }
+    if let Ok(atom) = term.decode::<Atom>() {
+        if atom == atoms::nil() {
+            return Ok(Value::Null);
+        }
+        if atom == atoms::true_atom() {
+            return Ok(Value::Integer(1));
+        }
+        if atom == atoms::false_atom() {
+            return Ok(Value::Integer(0));
+        }
+    }
+    if let Ok(value) = term.decode::<i64>() {
+        return Ok(Value::Integer(value));
+    }
+    if let Ok(value) = term.decode::<f64>() {
+        return Ok(Value::Real(value));
+    }
+    if let Ok(value) = term.decode::<String>() {
+        return Ok(Value::Text(value));
+    }
+    Err(NativeError::invalid(
+        operation,
+        format!("invalid bound parameter at index {index}"),
+    ))
+}
+
+fn decode_params(
+    named: bool,
+    names: Vec<String>,
+    terms: Vec<Term<'_>>,
+    operation: Atom,
+) -> Result<Params, NativeError> {
+    let values = terms
+        .into_iter()
+        .enumerate()
+        .map(|(index, term)| decode_value(term, index, operation))
+        .collect::<Result<Vec<_>, _>>()?;
+    if named {
+        if names.len() != values.len() {
+            return Err(NativeError::invalid(
+                operation,
+                "named parameter names and values differ in length",
+            ));
+        }
+        Ok(Params::Named(
+            names
+                .into_iter()
+                .zip(values)
+                .map(|(name, value)| (name.into(), value))
+                .collect(),
+        ))
+    } else if names.is_empty() {
+        Ok(Params::Positional(values))
+    } else {
+        Err(NativeError::invalid(
+            operation,
+            "positional parameters cannot include names",
+        ))
     }
 }
 
@@ -407,28 +577,42 @@ fn run_pragma(
         .as_ref()
         .ok_or_else(|| NativeError::closed(operation, "connection"))?;
     runtime_for(operation)?.block_on(async {
-        let mut rows = connection
-            .query(pragma_sql(name, value), ())
-            .await
-            .map_err(|error| classify(error, operation))?;
-        let columns = rows.column_count();
-        let mut result = Vec::new();
-        while let Some(row) = rows
-            .next()
-            .await
-            .map_err(|error| classify(error, operation))?
-        {
-            let mut values = Vec::with_capacity(columns);
-            for index in 0..columns {
-                values.push(SqlValue::from(
-                    row.get_value(index)
-                        .map_err(|error| classify(error, operation))?,
-                ));
-            }
-            result.push(values);
-        }
-        Ok(result)
+        collect_rows(
+            connection
+                .query(pragma_sql(name, value), ())
+                .await
+                .map_err(|error| classify(error, operation))?,
+            operation,
+        )
+        .await
     })
+}
+
+async fn collect_rows(mut rows: Rows, operation: Atom) -> Result<Vec<Vec<SqlValue>>, NativeError> {
+    let columns = rows.column_count();
+    let mut result = Vec::new();
+    while let Some(row) = rows
+        .next()
+        .await
+        .map_err(|error| classify(error, operation))?
+    {
+        result.push(decode_row(&row, columns, operation)?);
+    }
+    Ok(result)
+}
+
+fn decode_row(
+    row: &turso::Row,
+    columns: usize,
+    operation: Atom,
+) -> Result<Vec<SqlValue>, NativeError> {
+    (0..columns)
+        .map(|index| {
+            row.get_value(index)
+                .map(SqlValue::from)
+                .map_err(|error| classify(error, operation))
+        })
+        .collect()
 }
 
 #[rustler::nif(schedule = "DirtyIo")]
@@ -453,13 +637,262 @@ fn connection_pragma_update(
     )
 }
 
+#[rustler::nif(schedule = "DirtyIo")]
+fn connection_execute<'a>(
+    connection: ResourceArc<ConnectionResource>,
+    sql: String,
+    named: bool,
+    names: Vec<String>,
+    terms: Vec<Term<'a>>,
+) -> Result<(u64, i64), NativeError> {
+    let operation = atoms::connection_execute();
+    connection.ensure_open(operation)?;
+    let params = decode_params(named, names, terms, operation)?;
+    let inner = connection.inner.lock().map_err(|_| lock_error(operation))?;
+    let connection = inner
+        .as_ref()
+        .ok_or_else(|| NativeError::closed(operation, "connection"))?;
+    let changed = runtime_for(operation)?
+        .block_on(connection.execute(sql, params))
+        .map_err(|error| classify(error, operation))?;
+    Ok((changed, connection.last_insert_rowid()))
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn connection_execute_batch(
+    connection: ResourceArc<ConnectionResource>,
+    sql: String,
+) -> Result<Atom, NativeError> {
+    let operation = atoms::connection_execute_batch();
+    connection.ensure_open(operation)?;
+    let inner = connection.inner.lock().map_err(|_| lock_error(operation))?;
+    let connection = inner
+        .as_ref()
+        .ok_or_else(|| NativeError::closed(operation, "connection"))?;
+    runtime_for(operation)?
+        .block_on(connection.execute_batch(sql))
+        .map_err(|error| classify(error, operation))?;
+    Ok(atoms::ok())
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn connection_prepare(
+    connection: ResourceArc<ConnectionResource>,
+    sql: String,
+) -> Result<ResourceArc<StatementResource>, NativeError> {
+    let operation = atoms::connection_prepare();
+    connection.ensure_open(operation)?;
+    let inner = connection.inner.lock().map_err(|_| lock_error(operation))?;
+    let connection_value = inner
+        .as_ref()
+        .ok_or_else(|| NativeError::closed(operation, "connection"))?;
+    let statement = runtime_for(operation)?
+        .block_on(connection_value.prepare(sql))
+        .map_err(|error| classify(error, operation))?;
+    drop(inner);
+    STATEMENTS.fetch_add(1, Ordering::AcqRel);
+    Ok(ResourceArc::new(StatementResource {
+        inner: Mutex::new(Some(statement)),
+        connection,
+        open: AtomicBool::new(true),
+        active: AtomicBool::new(false),
+        counted: AtomicBool::new(true),
+    }))
+}
+
+#[rustler::nif]
+fn connection_last_insert_rowid(
+    connection: ResourceArc<ConnectionResource>,
+) -> Result<i64, NativeError> {
+    let operation = atoms::connection_last_insert_rowid();
+    connection.ensure_open(operation)?;
+    let inner = connection.inner.lock().map_err(|_| lock_error(operation))?;
+    Ok(inner
+        .as_ref()
+        .ok_or_else(|| NativeError::closed(operation, "connection"))?
+        .last_insert_rowid())
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn statement_close(statement: ResourceArc<StatementResource>) -> Atom {
+    statement.close();
+    atoms::ok()
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn statement_execute<'a>(
+    statement: ResourceArc<StatementResource>,
+    named: bool,
+    names: Vec<String>,
+    terms: Vec<Term<'a>>,
+) -> Result<(u64, i64), NativeError> {
+    let operation = atoms::statement_execute();
+    statement.ensure_open(operation)?;
+    statement.ensure_idle(operation)?;
+    let params = decode_params(named, names, terms, operation)?;
+    let connection_guard = statement
+        .connection
+        .inner
+        .lock()
+        .map_err(|_| lock_error(operation))?;
+    let connection = connection_guard
+        .as_ref()
+        .ok_or_else(|| NativeError::closed(operation, "connection"))?;
+    let mut inner = statement.inner.lock().map_err(|_| lock_error(operation))?;
+    let changed = runtime_for(operation)?
+        .block_on(
+            inner
+                .as_mut()
+                .ok_or_else(|| NativeError::closed(operation, "statement"))?
+                .execute(params),
+        )
+        .map_err(|error| classify(error, operation))?;
+    Ok((changed, connection.last_insert_rowid()))
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn statement_query<'a>(
+    statement: ResourceArc<StatementResource>,
+    named: bool,
+    names: Vec<String>,
+    terms: Vec<Term<'a>>,
+) -> Result<ResourceArc<CursorResource>, NativeError> {
+    let operation = atoms::statement_query();
+    statement.ensure_open(operation)?;
+    statement
+        .active
+        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+        .map_err(|_| {
+            NativeError::new(atoms::misuse(), operation, "statement has an active cursor")
+        })?;
+    let result = (|| {
+        let params = decode_params(named, names, terms, operation)?;
+        let _connection_guard = statement
+            .connection
+            .inner
+            .lock()
+            .map_err(|_| lock_error(operation))?;
+        let mut inner = statement.inner.lock().map_err(|_| lock_error(operation))?;
+        let rows = runtime_for(operation)?
+            .block_on(
+                inner
+                    .as_mut()
+                    .ok_or_else(|| NativeError::closed(operation, "statement"))?
+                    .query(params),
+            )
+            .map_err(|error| classify(error, operation))?;
+        CURSORS.fetch_add(1, Ordering::AcqRel);
+        Ok(ResourceArc::new(CursorResource {
+            inner: Mutex::new(Some(rows)),
+            statement: statement.clone(),
+            open: AtomicBool::new(true),
+            exhausted: AtomicBool::new(false),
+            counted: AtomicBool::new(true),
+        }))
+    })();
+    if result.is_err() {
+        statement.active.store(false, Ordering::Release);
+    }
+    result
+}
+
+#[rustler::nif]
+fn statement_reset(statement: ResourceArc<StatementResource>) -> Result<Atom, NativeError> {
+    let operation = atoms::statement_reset();
+    statement.ensure_open(operation)?;
+    statement.ensure_idle(operation)?;
+    let inner = statement.inner.lock().map_err(|_| lock_error(operation))?;
+    inner
+        .as_ref()
+        .ok_or_else(|| NativeError::closed(operation, "statement"))?
+        .reset()
+        .map_err(|error| classify(error, operation))?;
+    Ok(atoms::ok())
+}
+
+#[rustler::nif]
+fn statement_columns(
+    statement: ResourceArc<StatementResource>,
+) -> Result<Vec<(String, Option<String>)>, NativeError> {
+    let operation = atoms::statement_columns();
+    statement.ensure_open(operation)?;
+    let inner = statement.inner.lock().map_err(|_| lock_error(operation))?;
+    Ok(inner
+        .as_ref()
+        .ok_or_else(|| NativeError::closed(operation, "statement"))?
+        .columns()
+        .into_iter()
+        .map(|column| {
+            (
+                column.name().to_string(),
+                column.decl_type().map(str::to_string),
+            )
+        })
+        .collect())
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn cursor_fetch(
+    cursor: ResourceArc<CursorResource>,
+    max_rows: u64,
+) -> Result<(bool, Vec<Vec<SqlValue>>), NativeError> {
+    let operation = atoms::cursor_fetch();
+    if cursor.exhausted.load(Ordering::Acquire) {
+        return Ok((true, Vec::new()));
+    }
+    cursor.ensure_open(operation)?;
+    if max_rows == 0 {
+        return Err(NativeError::invalid(operation, "max_rows must be positive"));
+    }
+    let _connection_guard = cursor
+        .statement
+        .connection
+        .inner
+        .lock()
+        .map_err(|_| lock_error(operation))?;
+    let mut inner = cursor.inner.lock().map_err(|_| lock_error(operation))?;
+    let rows = inner
+        .as_mut()
+        .ok_or_else(|| NativeError::closed(operation, "cursor"))?;
+    let columns = rows.column_count();
+    let runtime = runtime_for(operation)?;
+    let mut result = Vec::with_capacity(usize::try_from(max_rows).unwrap_or(usize::MAX).min(1024));
+    let mut done = false;
+    for _ in 0..max_rows {
+        match runtime
+            .block_on(rows.next())
+            .map_err(|error| classify(error, operation))?
+        {
+            Some(row) => result.push(decode_row(&row, columns, operation)?),
+            None => {
+                done = true;
+                break;
+            }
+        }
+    }
+    if done {
+        inner.take();
+        cursor.open.store(false, Ordering::Release);
+        cursor.exhausted.store(true, Ordering::Release);
+        cursor.statement.active.store(false, Ordering::Release);
+        decrement_once(&cursor.counted, &CURSORS);
+    }
+    Ok((done, result))
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn cursor_close(cursor: ResourceArc<CursorResource>) -> Atom {
+    cursor.close();
+    atoms::ok()
+}
+
 #[rustler::nif]
 fn resource_snapshot() -> ResourceSnapshot {
     ResourceSnapshot {
         databases: DATABASES.load(Ordering::Acquire),
         connections: CONNECTIONS.load(Ordering::Acquire),
-        statements: 0,
-        cursors: 0,
+        statements: STATEMENTS.load(Ordering::Acquire),
+        cursors: CURSORS.load(Ordering::Acquire),
         smoke: SMOKE_RESOURCES.load(Ordering::Acquire),
     }
 }
