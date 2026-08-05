@@ -32,7 +32,7 @@ defmodule Tursox.MixProject do
   defp deps do
     [
       {:db_connection, "== 2.10.2"},
-      {:rustler, "== 0.38.0", optional: true, runtime: false},
+      {:rustler, "== 0.38.0", runtime: false},
       {:rustler_precompiled, "== 0.8.4"},
       {:telemetry, "== 1.4.2"},
       {:ex_doc, "== 0.40.3", only: :dev, runtime: false}
@@ -46,6 +46,7 @@ defmodule Tursox.MixProject do
         "README.md",
         "CHANGELOG.md",
         "SECURITY.md",
+        "THIRD_PARTY_NOTICES.md",
         "docs/architecture.md",
         "docs/capabilities.md",
         "docs/compatibility/turso-0.7.2.md",
@@ -53,7 +54,8 @@ defmodule Tursox.MixProject do
         "docs/queries-and-cursors.md",
         "docs/transactions-and-mvcc.md",
         "docs/pools.md",
-        "docs/managers.md"
+        "docs/managers.md",
+        "docs/operations.md"
       ],
       source_ref: "v#{@version}",
       source_url: @source_url
@@ -79,6 +81,7 @@ defmodule Tursox.MixProject do
           "CHANGELOG.md",
           "LICENSE",
           "SECURITY.md",
+          "THIRD_PARTY_NOTICES.md",
           "docs"
         ] ++ Path.wildcard("checksum-Elixir.Tursox.Native.exs")
     ]

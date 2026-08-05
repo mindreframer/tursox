@@ -6,7 +6,10 @@ defmodule Tursox do
   hierarchy. The direct API does not require a pool or manager.
   """
 
-  alias Tursox.{Error, Native}
+  alias Tursox.{Error, Native, Telemetry}
+
+  @doc "Returns deterministic logical native resource gauges."
+  def resources, do: Telemetry.resources()
 
   @doc "Checks that the source-built or precompiled native library is loaded."
   @spec smoke() :: {:ok, pos_integer()} | {:error, Error.t()}

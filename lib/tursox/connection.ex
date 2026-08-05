@@ -7,7 +7,17 @@ defmodule Tursox.Connection do
   a global lock.
   """
 
-  alias Tursox.{Column, Database, Error, Native, Parameters, Result, Statement, Transaction}
+  alias Tursox.{
+    Column,
+    Database,
+    Error,
+    Native,
+    Parameters,
+    Result,
+    Statement,
+    Telemetry,
+    Transaction
+  }
 
   @enforce_keys [:resource, :database, :busy_timeout]
   defstruct [:resource, :database, :busy_timeout]
@@ -46,7 +56,13 @@ defmodule Tursox.Connection do
 
   @doc "Executes one bound SQL statement and returns affected-row metadata."
   @spec execute_result(t(), String.t(), term()) :: {:ok, Result.t()} | {:error, Error.t()}
-  def execute_result(%__MODULE__{resource: resource}, sql, params \\ []) do
+  def execute_result(%__MODULE__{} = connection, sql, params \\ []) do
+    Telemetry.span(:query, %{kind: :execute}, fn ->
+      do_execute_result(connection, sql, params)
+    end)
+  end
+
+  defp do_execute_result(%__MODULE__{resource: resource}, sql, params) do
     with :ok <- validate_sql(sql, :connection_execute),
          {:ok, {named, names, values}} <- Parameters.normalize(params, :connection_execute),
          {:ok, {changed, rowid}} <-
@@ -87,6 +103,10 @@ defmodule Tursox.Connection do
   @doc "Prepares and starts a bounded native cursor convenience query."
   @spec query(t(), String.t(), term()) :: {:ok, Tursox.Cursor.t()} | {:error, Error.t()}
   def query(%__MODULE__{} = connection, sql, params \\ []) do
+    Telemetry.span(:query, %{kind: :cursor}, fn -> do_query(connection, sql, params) end)
+  end
+
+  defp do_query(connection, sql, params) do
     with {:ok, statement} <- prepare(connection, sql) do
       case Statement.query(statement, params) do
         {:ok, cursor} ->

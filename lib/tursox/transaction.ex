@@ -7,7 +7,7 @@ defmodule Tursox.Transaction do
   public Rust `TransactionBehavior::Concurrent` variant.
   """
 
-  alias Tursox.{Connection, Cursor, Error}
+  alias Tursox.{Connection, Cursor, Error, Telemetry}
 
   @modes [:deferred, :immediate, :exclusive, :concurrent]
 
@@ -38,6 +38,12 @@ defmodule Tursox.Transaction do
   @spec transaction(Connection.t(), (-> term()), keyword()) ::
           {:ok, term()} | {:error, term() | Error.t()} | no_return()
   def transaction(%Connection{} = connection, fun, opts \\ []) when is_function(fun, 0) do
+    Telemetry.span(:transaction, %{mode: mode_metadata(opts)}, fn ->
+      do_transaction(connection, fun, opts)
+    end)
+  end
+
+  defp do_transaction(connection, fun, opts) do
     case begin(connection, opts) do
       :ok -> run_callback(connection, fun)
       {:error, error} -> {:error, error}
@@ -48,7 +54,14 @@ defmodule Tursox.Transaction do
   @spec retry_transaction(Connection.t(), (-> term()), keyword()) ::
           {:ok, term()} | {:error, term() | Error.t()}
   def retry_transaction(%Connection{} = connection, fun, opts \\ []) when is_function(fun, 0) do
-    with {:ok, attempts} <- positive_integer(opts, :attempts, 3),
+    Telemetry.span(:transaction_retry, %{mode: mode_metadata(opts)}, fn ->
+      do_retry_transaction(connection, fun, opts)
+    end)
+  end
+
+  defp do_retry_transaction(connection, fun, opts) do
+    with {:ok, _mode} <- mode(opts),
+         {:ok, attempts} <- positive_integer(opts, :attempts, 3),
          {:ok, backoff} <- backoff(opts),
          {:ok, jitter} <- jitter(opts) do
       retry(connection, fun, opts, attempts, 1, backoff, jitter)
@@ -150,6 +163,9 @@ defmodule Tursox.Transaction do
         result
     end
   end
+
+  defp mode_metadata(opts) when is_list(opts), do: Keyword.get(opts, :mode, :deferred)
+  defp mode_metadata(_opts), do: :invalid
 
   defp mode(opts) when is_list(opts) do
     if Keyword.keyword?(opts) do

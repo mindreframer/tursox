@@ -6,7 +6,7 @@ defmodule Tursox.Cursor do
   lazy enumeration or `all/3` only with an explicit total-row limit.
   """
 
-  alias Tursox.{Column, Error, Native, Result, Statement}
+  alias Tursox.{Column, Error, Native, Result, Statement, Telemetry}
 
   @max_fetch 1_000_000
 
@@ -23,14 +23,9 @@ defmodule Tursox.Cursor do
   @doc "Fetches no more than `max_rows` ordered rows."
   @spec fetch(t(), pos_integer()) ::
           {:rows, [[term()]]} | {:done, [[term()]]} | :done | {:error, Error.t()}
-  def fetch(%__MODULE__{resource: resource} = cursor, max_rows)
+  def fetch(%__MODULE__{} = cursor, max_rows)
       when is_integer(max_rows) and max_rows > 0 and max_rows <= @max_fetch do
-    case Native.cursor_fetch(resource, max_rows) do
-      {:ok, {false, rows}} -> {:rows, rows}
-      {:ok, {true, []}} -> terminal(cursor, :done)
-      {:ok, {true, rows}} -> terminal(cursor, {:done, rows})
-      {:error, error} -> {:error, Error.from_native(error)}
-    end
+    Telemetry.span(:cursor_fetch, %{max_rows: max_rows}, fn -> do_fetch(cursor, max_rows) end)
   end
 
   def fetch(%__MODULE__{}, _max_rows) do
@@ -40,6 +35,15 @@ defmodule Tursox.Cursor do
        operation: :cursor_fetch,
        message: "max_rows must be between 1 and #{@max_fetch}"
      }}
+  end
+
+  defp do_fetch(%__MODULE__{resource: resource} = cursor, max_rows) do
+    case Native.cursor_fetch(resource, max_rows) do
+      {:ok, {false, rows}} -> {:rows, rows}
+      {:ok, {true, []}} -> terminal(cursor, :done)
+      {:ok, {true, rows}} -> terminal(cursor, {:done, rows})
+      {:error, error} -> {:error, Error.from_native(error)}
+    end
   end
 
   @doc "Fetches one row, returning `{:row, row}` or `:done`."

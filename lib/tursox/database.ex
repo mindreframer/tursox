@@ -9,7 +9,7 @@ defmodule Tursox.Database do
   Builder features are experimental upstream and opt-in through `:features`.
   """
 
-  alias Tursox.{Connection, Error, Native}
+  alias Tursox.{Connection, Error, Native, Telemetry}
 
   @features [
     :attach,
@@ -46,6 +46,16 @@ defmodule Tursox.Database do
   """
   @spec open(:memory | String.t(), keyword()) :: {:ok, t()} | {:error, Error.t()}
   def open(path, opts \\ []) do
+    Telemetry.span(
+      :database_open,
+      %{kind: if(path in [:memory, ":memory:"], do: :memory, else: :file)},
+      fn ->
+        do_open(path, opts)
+      end
+    )
+  end
+
+  defp do_open(path, opts) do
     with {:ok, config} <- validate_open(path, opts),
          :ok <- ensure_parent(config),
          {:ok, resource} <-
@@ -73,13 +83,19 @@ defmodule Tursox.Database do
   def connect(database, opts \\ [])
 
   def connect(%__MODULE__{} = database, opts) do
+    Telemetry.span(:database_connect, %{journal_mode: database.journal_mode}, fn ->
+      do_connect(database, opts)
+    end)
+  end
+
+  def connect(_database, _opts), do: invalid(:database_connect, "expected a database resource")
+
+  defp do_connect(database, opts) do
     with {:ok, timeout} <- validate_connect_options(opts),
          {:ok, resource} <- native(Native.database_connect(database.resource, timeout)) do
       {:ok, %Connection{resource: resource, database: database, busy_timeout: timeout}}
     end
   end
-
-  def connect(_database, _opts), do: invalid(:database_connect, "expected a database resource")
 
   @doc "Logically closes a database. It is safe to call repeatedly."
   @spec close(t()) :: :ok

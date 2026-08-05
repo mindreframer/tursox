@@ -31,7 +31,11 @@ defmodule Tursox.Parameters do
     do: invalid(operation, "parameters must be a positional list, named map, or named pair list")
 
   defp named_list?([]), do: false
-  defp named_list?(params), do: Enum.all?(params, &match?({_, _}, &1))
+  defp named_list?(params), do: Enum.all?(params, &named_pair?/1)
+
+  defp named_pair?({:blob, value}) when is_binary(value), do: false
+  defp named_pair?({name, _value}) when is_atom(name) or is_binary(name), do: true
+  defp named_pair?(_value), do: false
 
   defp normalize_named(pairs, operation) do
     with {:ok, names_values} <- normalize_pairs(pairs, operation),
