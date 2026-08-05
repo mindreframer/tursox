@@ -83,3 +83,25 @@ option with `Database.builder_features/0`.
 
 No unavailable feature is emulated and no experimental result is a production
 stability promise.
+
+## STRICT tables, custom types, and domains
+
+Proof: `test/type_capability_test.exs`; enabled experimental probes use a fresh
+child BEAM per type family.
+
+| Type capability | Status | Observed contract |
+|---|---|---|
+| Ordinary affinity | supported | Numeric/text affinity conversions and deliberately flexible storage match ordered `typeof` results |
+| STRICT base types | supported | `INTEGER`, `REAL`, `TEXT`, `BLOB`, and `ANY` accept convertible values and atomically reject incompatible storage classes |
+| Prepared/transaction/index/reopen behavior | supported | Bound writes, constraint rollback, multiple connections, index planning, durability, and integrity pass |
+| `PRAGMA list_types` | partial | Exactly six columns for five base rows; no custom definitions on the safe configuration |
+| `sqlite_turso_types` | unsupported | Catalog virtual table documented by newer web docs is absent on 0.7.2 |
+| Documented built-in semantic types | unsupported | `date`, `time`, `timestamp`, `varchar`, `numeric`, `smallint`, `boolean`, `uuid`, `bytea`, `inet`, `json`, and `jsonb` are absent from the pinned inventory |
+| User-defined `CREATE TYPE` | unsafe | Disabled gate is stable; enabled encode/decode probe can terminate 0.7.2, so defaults/operators/drop cannot be advertised |
+| Arrays | unsafe | Disabled gate is stable; enabled constructor/table probe is child-only |
+| `STRUCT` and `UNION` | unsafe | Disabled gate is stable; enabled create probes are child-only |
+| Domains | unsafe | Disabled gate is stable; enabled create/constraint probe is child-only, so chaining/casts/drop rules are not advertised |
+
+Tursox still transports only the five engine storage classes. It does not infer
+Elixir date, decimal, UUID, array, or composite values. Unsafe findings are valid
+pin results rather than emulated features or weakened tests.

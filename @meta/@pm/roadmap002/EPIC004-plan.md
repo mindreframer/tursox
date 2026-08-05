@@ -2,13 +2,13 @@
 
 ## Progress
 
-- [ ] Phase 4.1: Test affinity, STRICT enforcement, and feature gating.
-- [ ] Phase 4.2: Inventory and round-trip built-in custom types available on the pin.
-- [ ] Phase 4.3: Test user-defined type encoding, decoding, defaults, and operators.
-- [ ] Phase 4.4: Test arrays, STRUCT, and UNION support or classify their absence.
-- [ ] Phase 4.5: Test domains, chained constraints, casts, updates, and drop rules.
-- [ ] Phase 4.6: Verify introspection, transactions, indexes, connections, and reopen.
-- [ ] Phase 4.7: Publish type capabilities, pass QA, and commit Epic 4.
+- [x] Phase 4.1: Test affinity, STRICT enforcement, and feature gating.
+- [x] Phase 4.2: Inventory and round-trip built-in custom types available on the pin.
+- [x] Phase 4.3: Test user-defined type encoding, decoding, defaults, and operators.
+- [x] Phase 4.4: Test arrays, STRUCT, and UNION support or classify their absence.
+- [x] Phase 4.5: Test domains, chained constraints, casts, updates, and drop rules.
+- [x] Phase 4.6: Verify introspection, transactions, indexes, connections, and reopen.
+- [x] Phase 4.7: Publish type capabilities, pass QA, and commit Epic 4.
 
 ## Implementation Steps
 
@@ -22,11 +22,11 @@
 
 ## Quality Gate
 
-- [ ] STRICT and custom-type gating is deterministic.
-- [ ] Supported logical types round-trip through Tursox values.
-- [ ] Type/domain constraints reject invalid writes atomically.
-- [ ] Unsupported newer syntax is classified explicitly.
-- [ ] QA passes.
+- [x] STRICT and custom-type gating is deterministic.
+- [x] Supported logical types round-trip through Tursox values.
+- [x] Type/domain constraints reject invalid writes atomically.
+- [x] Unsupported newer syntax is classified explicitly.
+- [x] QA passes.
 
 ## Commit Rule
 
