@@ -39,6 +39,9 @@ defmodule Tursox.Pool do
   @doc "Returns redacted ownership and database metadata."
   def metadata(owner), do: Owner.metadata(owner)
 
+  @doc false
+  def database(owner), do: Owner.database(owner)
+
   @doc "Executes a write/DDL statement through DBConnection."
   @spec execute(GenServer.server() | DBConnection.t(), String.t(), term(), keyword()) ::
           {:ok, Result.t()} | {:error, Exception.t()}

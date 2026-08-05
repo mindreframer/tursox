@@ -14,3 +14,5 @@
   conflict classification and whole-callback retry, checkpoint threshold, and WAL checkpoints.
 - Optional shared-handle DBConnection pools with real per-worker preparation,
   bounded streams, transaction modes, worker replacement, and deterministic ownership cleanup.
+- Caller-supervised multi-database managers with atomic admission, canonical-path
+  protection, capacity limits, bounded close, persistent restart, safe listing, and no dynamic atoms.

@@ -8,13 +8,14 @@ defmodule Tursox.Pool.Owner do
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts, Keyword.take(opts, [:name]))
   def pool(owner), do: GenServer.call(owner, :pool)
   def metadata(owner), do: GenServer.call(owner, :metadata)
+  def database(owner), do: GenServer.call(owner, :database)
 
   @impl true
   def init(opts) do
     Process.flag(:trap_exit, true)
     registry = :ets.new(:tursox_pool_resources, [:set, :public])
 
-    with {:ok, database, owned?} <- database(opts),
+    with {:ok, database, owned?} <- open_database(opts),
          {:ok, pool} <- start_pool(database, opts, registry) do
       {:ok, %{database: database, owned?: owned?, pool: pool, registry: registry, monitors: %{}}}
     else
@@ -24,6 +25,7 @@ defmodule Tursox.Pool.Owner do
 
   @impl true
   def handle_call(:pool, _from, state), do: {:reply, state.pool, state}
+  def handle_call(:database, _from, state), do: {:reply, state.database, state}
 
   def handle_call(:metadata, _from, state) do
     state = sweep_dead_workers(state)
@@ -67,7 +69,7 @@ defmodule Tursox.Pool.Owner do
     :ok
   end
 
-  defp database(opts) do
+  defp open_database(opts) do
     case Keyword.get(opts, :database, :memory) do
       %Database{} = database ->
         {:ok, database, Keyword.get(opts, :own_database, false)}

@@ -6,13 +6,13 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC006-spec.md` completel
 
 ## Progress
 
-- [ ] Phase 6.1: Define manager supervision, naming, tenant identity, ownership, and close contracts.
-- [ ] Phase 6.2: Implement isolated open/lookup/list state without dynamic atoms or a global singleton.
-- [ ] Phase 6.3: Start one owned database/pool entry per tenant with independent options.
-- [ ] Phase 6.4: Add atomic duplicate/path checks and `max_databases` admission control.
-- [ ] Phase 6.5: Implement graceful drain, force-close bounds, entry restart, and manager shutdown.
-- [ ] Phase 6.6: Stress many mixed-mode databases, races, crashes, isolation, and resource cleanup.
-- [ ] Phase 6.7: Pass the epic gate and create the focused Epic 6 commit.
+- [x] Phase 6.1: Define manager supervision, naming, tenant identity, ownership, and close contracts.
+- [x] Phase 6.2: Implement isolated open/lookup/list state without dynamic atoms or a global singleton.
+- [x] Phase 6.3: Start one owned database/pool entry per tenant with independent options.
+- [x] Phase 6.4: Add atomic duplicate/path checks and `max_databases` admission control.
+- [x] Phase 6.5: Implement graceful drain, force-close bounds, entry restart, and manager shutdown.
+- [x] Phase 6.6: Stress many mixed-mode databases, races, crashes, isolation, and resource cleanup.
+- [x] Phase 6.7: Pass the epic gate and create the focused Epic 6 commit.
 
 ## Implementation Steps
 
@@ -26,12 +26,12 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC006-spec.md` completel
 
 ## Quality Gate
 
-- [ ] Multiple independent managers and overlapping IDs work.
-- [ ] Duplicate/capacity races leak no resources.
-- [ ] Tenant configuration and data remain isolated.
-- [ ] Close/restart/shutdown behavior is deterministic.
-- [ ] No dynamic atoms or global manager are introduced.
-- [ ] QA passes.
+- [x] Multiple independent managers and overlapping IDs work.
+- [x] Duplicate/capacity races leak no resources.
+- [x] Tenant configuration and data remain isolated.
+- [x] Close/restart/shutdown behavior is deterministic.
+- [x] No dynamic atoms or global manager are introduced.
+- [x] QA passes.
 
 ## Commit Rule
 

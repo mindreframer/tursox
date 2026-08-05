@@ -52,7 +52,8 @@ defmodule Tursox.MixProject do
         "docs/databases-and-connections.md",
         "docs/queries-and-cursors.md",
         "docs/transactions-and-mvcc.md",
-        "docs/pools.md"
+        "docs/pools.md",
+        "docs/managers.md"
       ],
       source_ref: "v#{@version}",
       source_url: @source_url
