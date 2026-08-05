@@ -12,3 +12,5 @@
   metadata, bounded incremental cursors, lazy streams, and explicit map conversion.
 - Rollback-safe transaction callbacks, four transaction modes, experimental MVCC
   conflict classification and whole-callback retry, checkpoint threshold, and WAL checkpoints.
+- Optional shared-handle DBConnection pools with real per-worker preparation,
+  bounded streams, transaction modes, worker replacement, and deterministic ownership cleanup.

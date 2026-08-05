@@ -6,13 +6,13 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC005-spec.md` completel
 
 ## Progress
 
-- [ ] Phase 5.1: Define pool ownership, query/result, and DBConnection compatibility contracts.
-- [ ] Phase 5.2: Start one database owner and derive every pool worker connection from it.
-- [ ] Phase 5.3: Implement prepare/execute/close, status, ping, and stable disconnect classification.
-- [ ] Phase 5.4: Implement declare/fetch/deallocate with bounded native cursor chunks.
-- [ ] Phase 5.5: Implement all transaction modes and checkout-safe rollback behavior.
-- [ ] Phase 5.6: Harden worker restart, in-memory sharing, shutdown, early halt, and resource counts.
-- [ ] Phase 5.7: Pass the epic gate and create the focused Epic 5 commit.
+- [x] Phase 5.1: Define pool ownership, query/result, and DBConnection compatibility contracts.
+- [x] Phase 5.2: Start one database owner and derive every pool worker connection from it.
+- [x] Phase 5.3: Implement prepare/execute/close, status, ping, and stable disconnect classification.
+- [x] Phase 5.4: Implement declare/fetch/deallocate with bounded native cursor chunks.
+- [x] Phase 5.5: Implement all transaction modes and checkout-safe rollback behavior.
+- [x] Phase 5.6: Harden worker restart, in-memory sharing, shutdown, early halt, and resource counts.
+- [x] Phase 5.7: Pass the epic gate and create the focused Epic 5 commit.
 
 ## Implementation Steps
 
@@ -26,12 +26,12 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC005-spec.md` completel
 
 ## Quality Gate
 
-- [ ] `pool_size: N` creates one database and N derived connections.
-- [ ] In-memory pool workers share state.
-- [ ] Streams are bounded and clean up on halt.
-- [ ] Transaction and worker-replacement tests pass.
-- [ ] Direct API has no DBConnection startup requirement.
-- [ ] QA passes.
+- [x] `pool_size: N` creates one database and N derived connections.
+- [x] In-memory pool workers share state.
+- [x] Streams are bounded and clean up on halt.
+- [x] Transaction and worker-replacement tests pass.
+- [x] Direct API has no DBConnection startup requirement.
+- [x] QA passes.
 
 ## Commit Rule
 

@@ -51,7 +51,8 @@ defmodule Tursox.MixProject do
         "docs/compatibility/turso-0.7.2.md",
         "docs/databases-and-connections.md",
         "docs/queries-and-cursors.md",
-        "docs/transactions-and-mvcc.md"
+        "docs/transactions-and-mvcc.md",
+        "docs/pools.md"
       ],
       source_ref: "v#{@version}",
       source_url: @source_url
