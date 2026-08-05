@@ -74,6 +74,7 @@ defmodule Tursox.MixProject do
           "native/tursox_nif/src",
           "native/tursox_nif/Cargo.toml",
           "native/tursox_nif/Cargo.lock",
+          ".cargo/config.toml",
           "rust-toolchain.toml",
           ".formatter.exs",
           "mix.exs",

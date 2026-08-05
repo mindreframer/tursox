@@ -95,7 +95,6 @@ jobs:
             -e TARGET="$TARGET" \
             -e CARGO_INCREMENTAL=0 \
             -e CARGO_TARGET_DIR="/work/native/tursox_nif/target/$TARGET" \
-            -e RUSTFLAGS="-C target-feature=-crt-static" \
             "$IMAGE" sh -c '
               set -eu
               if test -f /etc/alpine-release; then
