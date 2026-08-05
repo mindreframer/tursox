@@ -12,8 +12,10 @@ statements, and bounded row cursors. Optional shared-handle DBConnection pools
 and caller-supervised multi-database managers build on the same resources.
 There is no global registry.
 
-Version 0.1.0 pins Turso 0.7.2 and Rust 1.91.0. MVCC is explicit and remains
-experimental upstream. See the [capability matrix](docs/capabilities.md) and
+Version 0.2.0 pins Turso 0.7.2 and Rust 1.91.0. It deliberately enables tested
+Turso FTS while MVCC and advanced builder features remain explicit experimental
+opt-ins. See the [Roadmap 2 capability report](docs/roadmap002-capabilities.md),
+[capability matrix](docs/capabilities.md), and
 [compatibility notes](docs/compatibility/turso-0.7.2.md).
 
 ## Installation
@@ -21,7 +23,7 @@ experimental upstream. See the [capability matrix](docs/capabilities.md) and
 After release, add:
 
 ```elixir
-def deps, do: [{:tursox, "~> 0.1.0"}]
+def deps, do: [{:tursox, "~> 0.2.0"}]
 ```
 
 Supported targets use NIF 2.16 precompiled binaries after their published
@@ -48,6 +50,12 @@ use `{:blob, binary}` for BLOBs. Fetches are bounded to 10,000 rows. For details
 see [databases and connections](docs/databases-and-connections.md),
 [queries and cursors](docs/queries-and-cursors.md), and
 [transactions and MVCC](docs/transactions-and-mvcc.md).
+
+Tursox 0.2.0 verifies core SQL, safe argument-bearing PRAGMAs, STRICT and
+advanced schema behavior, Tantivy-backed FTS, built-in extensions, and
+platform-limited multiprocess WAL. Unsupported and unsafe pinned-engine results
+are published explicitly rather than emulated. Enable FTS indexes with
+`features: [:index_method]` when opening the database.
 
 ## Pool and manager
 

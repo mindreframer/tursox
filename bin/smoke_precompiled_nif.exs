@@ -9,6 +9,7 @@ nif_file =
     _other ->
       Path.expand(nif_input)
   end
+
 unless File.regular?(nif_file), do: raise("NIF library does not exist: #{nif_file}")
 
 runtime_extension = if match?({:win32, _}, :os.type()), do: ".dll", else: ".so"
@@ -18,7 +19,12 @@ load_file =
   if extension == runtime_extension do
     nif_file
   else
-    copied = Path.join(System.tmp_dir!(), "tursox_raw_#{System.unique_integer([:positive])}#{runtime_extension}")
+    copied =
+      Path.join(
+        System.tmp_dir!(),
+        "tursox_raw_#{System.unique_integer([:positive])}#{runtime_extension}"
+      )
+
     File.cp!(nif_file, copied)
     copied
   end
@@ -38,6 +44,7 @@ functions = [
   connection_status: 1,
   connection_cache_flush: 1,
   connection_pragma_query: 2,
+  connection_pragma_query_argument: 3,
   connection_pragma_update: 3,
   connection_execute: 5,
   connection_execute_batch: 2,
@@ -99,18 +106,29 @@ end
 root = Path.expand("..", __DIR__)
 Code.compiler_options(no_warn_undefined: [Tursox.Statement, Tursox.Transaction])
 
-for file <- ~w(error column result parameters telemetry cursor statement connection transaction database) do
+for file <-
+      ~w(error column result parameters telemetry cursor statement connection transaction database) do
   Code.require_file(Path.join(root, "lib/tursox/#{file}.ex"))
 end
 
 Code.require_file(Path.join(root, "lib/tursox.ex"))
 {:ok, 1} = Tursox.smoke()
-{:ok, database} = Tursox.Database.open(:memory)
+{:ok, database} = Tursox.Database.open(:memory, features: [:index_method])
 {:ok, connection} = Tursox.Database.connect(database)
 :ok = Tursox.Connection.execute(connection, "CREATE TABLE smoke (value TEXT)")
+:ok = Tursox.Connection.execute(connection, "CREATE INDEX smoke_fts ON smoke USING fts(value)")
 :ok = Tursox.Connection.execute(connection, "INSERT INTO smoke VALUES (?)", ["precompiled"])
-{:ok, cursor} = Tursox.Connection.query(connection, "SELECT value FROM smoke")
+
+{:ok, cursor} =
+  Tursox.Connection.query(
+    connection,
+    "SELECT value FROM smoke WHERE fts_match(value, ?)",
+    ["precompiled"]
+  )
+
 {:done, [["precompiled"]]} = Tursox.Cursor.fetch(cursor, 10)
+{:ok, cursor} = Tursox.Connection.query(connection, "SELECT length(uuid4())")
+{:done, [[16]]} = Tursox.Cursor.fetch(cursor, 10)
 :ok = Tursox.Connection.close(connection)
 :ok = Tursox.Database.close(database)
 IO.puts("Raw and public-API precompiled NIF smoke passed: #{nif_file}")

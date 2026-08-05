@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.2.0 - 2026-08-05
+
+### Added
+
+- Executable core SQL regression baseline across direct, pooled, managed, file,
+  memory, transaction, persistence, and resource-lifecycle paths.
+- Injection-safe argument-bearing PRAGMA API and documented metadata,
+  configuration, integrity, WAL/MVCC, gated, and unsupported result shapes.
+- Machine-readable experimental capability metadata and generated pinned-engine
+  report with subprocess containment for crash-prone probes.
+- STRICT base-type, ordinary view, generated-column, trigger, `WITHOUT ROWID`,
+  attach/detach, vacuum, and reopen/integrity coverage.
+- Deliberate Tantivy-backed FTS build support with matching, scoring,
+  highlighting, tokenizers, weights, DML, transaction, optimize, and reopen tests.
+- Runtime-derived UUID, regexp, vector, time, percentile, series, unavailable
+  extension, and disabled runtime-loading inventory.
+- Real 64-bit Unix multiprocess WAL child-process tests for snapshots, writer
+  serialization, checkpoint/schema refresh, crash recovery, sidecars, and exact
+  0.7.2 documentation differences.
+
+### Changed
+
+- Split the native NIF implementation into cohesive builder, database, query,
+  resource, value, error, runtime, smoke, and atom modules.
+- Precompiled consumer smoke now verifies FTS and representative built-ins.
+
 ## 0.1.0 - 2026-08-05
 
 ### Added

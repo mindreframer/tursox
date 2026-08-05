@@ -5,6 +5,10 @@ use crate::runtime::runtime_for;
 use rustler::{Atom, ResourceArc};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Once;
+
+static PANIC_HOOK: Once = Once::new();
+const PROBE_PANIC: &str = "intentional smoke panic";
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn smoke() -> Result<u64, NativeError> {
@@ -21,7 +25,18 @@ fn smoke_error() -> Result<u64, NativeError> {
 
 #[rustler::nif]
 fn smoke_panic() -> Result<u64, NativeError> {
-    catch_unwind(AssertUnwindSafe(|| panic!("intentional smoke panic"))).map_err(|_| {
+    PANIC_HOOK.call_once(|| {
+        let previous = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            let expected = info.payload().downcast_ref::<&str>() == Some(&PROBE_PANIC)
+                || info.payload().downcast_ref::<String>().map(String::as_str) == Some(PROBE_PANIC);
+            if !expected {
+                previous(info);
+            }
+        }));
+    });
+
+    catch_unwind(AssertUnwindSafe(|| panic!("{PROBE_PANIC}"))).map_err(|_| {
         NativeError::internal(
             atoms::smoke_panic(),
             "native panic contained at NIF boundary",

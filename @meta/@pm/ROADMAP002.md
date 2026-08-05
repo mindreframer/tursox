@@ -1,6 +1,6 @@
 # ROADMAP002 — Turso Capability Coverage and Regression Confidence
 
-- **Status:** Planned
+- **Status:** Release verification in progress
 - **Target:** `0.2.0`
 - **Engine baseline:** keep the currently pinned `turso = 0.7.2`
 - **Primary outcome:** expose and verify more Turso SQL capabilities through Tursox

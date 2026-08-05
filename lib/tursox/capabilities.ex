@@ -117,4 +117,36 @@ defmodule Tursox.Capabilities do
   @doc "Returns the documented experimental-feature matrix for Turso 0.7.2."
   @spec experimental_features() :: %{atom() => map()}
   def experimental_features, do: @experimental
+
+  @doc "Returns the release-level executable compatibility summary."
+  @spec report() :: map()
+  def report do
+    %{
+      report_version: 1,
+      tursox: "0.2.0",
+      engine: %{crate: "turso", version: "0.7.2", cargo_features: [:fts]},
+      statuses: @statuses,
+      categories: %{
+        core_sql: %{status: :supported, proof: ["test/core_sql_regression_test.exs"]},
+        pragmas: %{status: :partial, proof: ["test/pragma_capability_test.exs"]},
+        experimental: %{
+          status: :partial,
+          proof: ["test/experimental_capability_test.exs"]
+        },
+        types: %{status: :partial, proof: ["test/type_capability_test.exs"]},
+        schema: %{
+          status: :partial,
+          proof:
+            ~w(test/view_capability_test.exs test/table_feature_test.exs test/storage_schema_test.exs)
+        },
+        fts: %{status: :supported, proof: ["test/fts_test.exs"]},
+        extensions: %{status: :partial, proof: ["test/extension_inventory_test.exs"]},
+        multiprocess_wal: %{
+          status: :platform_limited,
+          proof: ~w(test/multiprocess_access_test.exs test/multiprocess_recovery_test.exs)
+        }
+      },
+      experimental_features: @experimental
+    }
+  end
 end

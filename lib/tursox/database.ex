@@ -120,7 +120,7 @@ defmodule Tursox.Database do
          :ok <- validate_boolean(opts, :create_parent, false),
          :ok <- validate_mode(Keyword.get(opts, :mode, :read_write_create)),
          {:ok, busy_timeout} <- validate_timeout(Keyword.get(opts, :busy_timeout, 0)),
-         :ok <- validate_compatibility(journal_mode, features) do
+         :ok <- validate_compatibility(journal_mode, features, paths.public_path) do
       {:ok,
        Map.merge(paths, %{
          journal_mode: journal_mode,
@@ -204,7 +204,13 @@ defmodule Tursox.Database do
   defp validate_timeout(_value),
     do: invalid(:database_connect, "busy_timeout must be a non-negative integer")
 
-  defp validate_compatibility(:mvcc, features) do
+  defp validate_compatibility(_journal, features, :memory) do
+    if :multiprocess_wal in features,
+      do: invalid(:database_open, "multiprocess WAL requires a file database"),
+      else: :ok
+  end
+
+  defp validate_compatibility(:mvcc, features, _path) do
     if :multiprocess_wal in features do
       invalid(:database_open, "MVCC and multiprocess WAL cannot be enabled together")
     else
@@ -212,7 +218,7 @@ defmodule Tursox.Database do
     end
   end
 
-  defp validate_compatibility(_journal, _features), do: :ok
+  defp validate_compatibility(_journal, _features, _path), do: :ok
 
   defp ensure_parent(%{parent: nil}), do: :ok
 

@@ -115,7 +115,7 @@ Proof: `test/view_capability_test.exs`, `test/table_feature_test.exs`, and
 |---|---|---|
 | Ordinary views | supported | Filtered/aggregate views query and introspect as `view`; writes fail; drop leaves base data |
 | Materialized views | unsafe | Disabled definitions fail without schema damage; enabled creation remains child-only, so no incremental-maintenance claim is made |
-| Generated columns | supported | Virtual values and indexes track insert/update, rollback, sibling connections, and reopen |
+| Generated columns | unsafe | Disabled gate is stable; reading enabled generated values can segfault on 0.7.2/Linux and runs only in a disposable child BEAM |
 | Triggers | supported | Always-on update trigger and audit effects commit/roll back atomically; schema introspection/drop pass |
 | `WITHOUT ROWID` | supported | Primary key is mandatory, hidden `rowid` is absent, ordering and reopen pass |
 | Attach/detach | supported | Opt-in file schema has isolated names/data, appears in `database_list`, persists independently, and detaches cleanly |
@@ -173,3 +173,28 @@ Proof: `test/extension_inventory_test.exs`, derived from `function_list` and
 Malformed UUID/regexp/percentile inputs return NULL on 0.7.2, and a zero series
 step uses the default positive step; vector dimension and invalid time inputs
 return errors. These tested differences are retained rather than normalized.
+
+## Multiprocess WAL
+
+Proof: `test/multiprocess_access_test.exs`,
+`test/multiprocess_recovery_test.exs`, and repository-owned
+`bin/multiprocess_probe.exs`. Claims require 64-bit Unix, Turso's default
+file-backed I/O, and a local filesystem; other targets explicitly retain
+`platform_limited` status rather than reporting a skipped test as success.
+
+| Multiprocess capability | Status | Observed contract |
+|---|---|---|
+| Independent process reads/writes | platform_limited | Separate BEAM OS processes open one file and commit ordered rows |
+| Writer serialization | platform_limited | File barriers prove a second process cannot complete its immediate write until the first commits |
+| Reader snapshots | platform_limited | A read transaction retains its count across another process commit and sees the commit after ending its snapshot |
+| Checkpoint/schema refresh | platform_limited | Child checkpoint returns the WAL three-integer shape; an existing prepared statement executes after sibling `ALTER TABLE` |
+| Process death/recovery | platform_limited | SIGKILL of an uncommitted writer leaves no row, a later writer acquires the slot, and integrity remains `ok` |
+| Sidecars | platform_limited | `.db-wal` and `.db-tshm` are observed; `.db-tshm` can remain after close and must not be manually treated as stale corruption |
+| Memory databases | unsupported | Tursox rejects the combination before native allocation because shared mmap coordination requires a file |
+| MVCC combination | unsupported | Tursox rejects multiprocess WAL with MVCC before allocation |
+| Mode mixing | partial | Contrary to newer docs, 0.7.2 on macOS permits a legacy open while a multiprocess opener is live; Tursox records and avoids claiming this unsafe mix |
+| Network/distributed filesystems | platform_limited | Not exercised in CI; rely on the engine's open-time filesystem rejection and use only supported local filesystems |
+
+Child waits are deadline-bounded and synchronized by atomically renamed barrier
+files. Crash children are killed and reaped. The on-disk coordinator is
+experimental and is not a cross-version stability promise.
