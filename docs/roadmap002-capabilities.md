@@ -105,3 +105,23 @@ child BEAM per type family.
 Tursox still transports only the five engine storage classes. It does not infer
 Elixir date, decimal, UUID, array, or composite values. Unsafe findings are valid
 pin results rather than emulated features or weakened tests.
+
+## Views and advanced schema
+
+Proof: `test/view_capability_test.exs`, `test/table_feature_test.exs`, and
+`test/storage_schema_test.exs`.
+
+| Schema capability | Status | Observed contract |
+|---|---|---|
+| Ordinary views | supported | Filtered/aggregate views query and introspect as `view`; writes fail; drop leaves base data |
+| Materialized views | unsafe | Disabled definitions fail without schema damage; enabled creation remains child-only, so no incremental-maintenance claim is made |
+| Generated columns | supported | Virtual values and indexes track insert/update, rollback, sibling connections, and reopen |
+| Triggers | supported | Always-on update trigger and audit effects commit/roll back atomically; schema introspection/drop pass |
+| `WITHOUT ROWID` | supported | Primary key is mandatory, hidden `rowid` is absent, ordering and reopen pass |
+| Attach/detach | supported | Opt-in file schema has isolated names/data, appears in `database_list`, persists independently, and detaches cleanly |
+| Vacuum | partial | Opt-in `VACUUM` compacts initialized file databases while preserving rows/integrity; empty database error is a pin limitation |
+| Autovacuum | unsupported | `PRAGMA auto_vacuum` has an empty result shape and updates demand a builder flag absent from public 0.7.2 |
+
+Materialized-view IVM, unsupported query shapes, dependencies, and refresh are not
+advertised because the enabled pin is unsafe. File fixtures use unique local
+paths and close attached/database resources before cleanup.
