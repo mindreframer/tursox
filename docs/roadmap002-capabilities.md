@@ -56,3 +56,30 @@ pools can issue generic SQL when checkout-scoped policy is intentional.
 Potentially crash-prone passive MVCC checkpointing remains `unsafe`: it is not
 in the public feature allowlist and is never run in the main ExUnit VM. Secret
 keys are not exposed as Tursox options, telemetry metadata, or inspect data.
+
+## Experimental feature switches
+
+Proof: `test/experimental_capability_test.exs` and the disposable
+`bin/capability_probe.exs`. The machine-readable authority is
+`Tursox.Capabilities.experimental_features/0`; a drift test aligns every exposed
+option with `Database.builder_features/0`.
+
+| Documented feature | Rust builder / Tursox option | Status | Disabled/enabled finding |
+|---|---|---|---|
+| Views | always on / none | supported | Ordinary create/query/drop works without a flag |
+| Materialized views | `experimental_materialized_views` / `:materialized_views` | unsafe | Disabled parser gate is stable; enabled 0.7.2 execution can bus-error and is probed only in a child BEAM |
+| Custom types and domains | `experimental_custom_types` / `:custom_types` | unsafe | Disabled parser gate is stable; enabled create-type execution can bus-error and is child-only |
+| Encryption | `experimental_encryption` / none | unsupported | Builder exists, but the disabled Cargo crypto feature and absent secret-safe open contract make exposure unsafe |
+| Index methods | `experimental_index_method` / `:index_method` | partial | Parser gate works; method availability additionally depends on the deliberate Cargo `fts` feature |
+| Autovacuum | absent / none | unsupported | Web-documented experimental builder switch is absent from 0.7.2 |
+| Vacuum | `experimental_vacuum` / `:vacuum` | partial | Works on an initialized file; empty databases produce a 0.7.2 internal error |
+| Attach/detach | `experimental_attach` / `:attach` | supported | Disabled gate and enabled attach/list/detach pass |
+| Generated columns | `experimental_generated_columns` / `:generated_columns` | supported | Disabled gate and virtual generated result pass |
+| `WITHOUT ROWID` | `experimental_without_rowid` / `:without_rowid` | supported | Disabled gate and enabled create pass |
+| Multiprocess WAL | `experimental_multiprocess_wal` / `:multiprocess_wal` | platform_limited | Rejected with MVCC; real-process/platform results are in the release section |
+| MVCC passive checkpoint | `experimental_mvcc_passive_checkpoint` / none | unsafe | Rejected before allocation; manual MVCC checkpoint is contained in a child BEAM |
+| Triggers | compatibility no-op / none | supported | Always enabled in 0.7.2 |
+| STRICT | compatibility no-op / none | supported | Always enabled in 0.7.2 |
+
+No unavailable feature is emulated and no experimental result is a production
+stability promise.

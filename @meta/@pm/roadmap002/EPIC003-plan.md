@@ -2,13 +2,13 @@
 
 ## Progress
 
-- [ ] Phase 3.1: Map documented flags to exact pinned Builder and Cargo capabilities.
-- [ ] Phase 3.2: Align public feature names, validation, metadata, and disabled behavior.
-- [ ] Phase 3.3: Probe views, types, index methods, generated columns, and rowid options.
-- [ ] Phase 3.4: Probe encryption, vacuum/autovacuum, attach, and trigger availability.
-- [ ] Phase 3.5: Probe multiprocess and MVCC checkpoint switches safely.
-- [ ] Phase 3.6: Generate and verify supported/partial/unsupported/platform/unsafe statuses.
-- [ ] Phase 3.7: Publish the feature matrix, pass QA, and commit Epic 3.
+- [x] Phase 3.1: Map documented flags to exact pinned Builder and Cargo capabilities.
+- [x] Phase 3.2: Align public feature names, validation, metadata, and disabled behavior.
+- [x] Phase 3.3: Probe views, types, index methods, generated columns, and rowid options.
+- [x] Phase 3.4: Probe encryption, vacuum/autovacuum, attach, and trigger availability.
+- [x] Phase 3.5: Probe multiprocess and MVCC checkpoint switches safely.
+- [x] Phase 3.6: Generate and verify supported/partial/unsupported/platform/unsafe statuses.
+- [x] Phase 3.7: Publish the feature matrix, pass QA, and commit Epic 3.
 
 ## Implementation Steps
 
@@ -22,11 +22,11 @@
 
 ## Quality Gate
 
-- [ ] Every documented experimental feature has one explicit status.
-- [ ] Public feature options match supported Builder switches.
-- [ ] Disabled and incompatible behavior is tested.
-- [ ] No feature claim depends only on current web documentation.
-- [ ] QA passes.
+- [x] Every documented experimental feature has one explicit status.
+- [x] Public feature options match supported Builder switches.
+- [x] Disabled and incompatible behavior is tested.
+- [x] No feature claim depends only on current web documentation.
+- [x] QA passes.
 
 ## Commit Rule
 
