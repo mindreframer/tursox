@@ -18,7 +18,8 @@ defmodule Tursox.MixProject do
       authors: @authors,
       package: package(),
       docs: docs(),
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
@@ -35,9 +36,12 @@ defmodule Tursox.MixProject do
       {:rustler, "== 0.38.0", runtime: false},
       {:rustler_precompiled, "== 0.8.4"},
       {:telemetry, "== 1.4.2"},
+      {:dev_cluster, "== 0.1.0", only: :test},
       {:ex_doc, "== 0.40.3", only: :dev, runtime: false}
     ]
   end
+
+  defp aliases, do: [test: "test --no-start"]
 
   defp docs do
     [

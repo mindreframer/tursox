@@ -1,18 +1,24 @@
 defmodule Tursox.MultiprocessAccessTest do
-  use Tursox.TestSupport.TmpCase, async: true
+  use Tursox.TestSupport.TmpCase, async: false
 
   alias Tursox.TestSupport.Multiprocess, as: MP
   alias Tursox.{Connection, Cursor, Database, Error}
 
+  @moduletag timeout: 8_000
+
   setup %{tmp_dir: root} do
-    {:ok, root: root, path: tmp_path(root, "multiprocess.db")}
+    workers = if MP.supported?(), do: MP.nodes(), else: [nil, nil]
+    {:ok, root: root, path: tmp_path(root, "multiprocess.db"), workers: workers}
   end
 
-  test "independent OS processes write and a Tursox reader observes sidecars", %{path: path} do
+  test "independent OS processes write and a Tursox reader observes sidecars", %{
+    path: path,
+    workers: [first, second]
+  } do
     if MP.supported?() do
-      MP.run!(["init", path])
-      MP.run!(["insert", path, "1", "one"])
-      MP.run!(["insert", path, "2", "two"])
+      MP.run!(first, ["init", path])
+      MP.run!(second, ["insert", path, "1", "one"])
+      MP.run!(first, ["insert", path, "2", "two"])
 
       {database, connection} = open(path)
 
@@ -29,37 +35,57 @@ defmodule Tursox.MultiprocessAccessTest do
     end
   end
 
-  test "reader snapshot stays stable across another process commit", %{root: root, path: path} do
+  test "reader snapshot stays stable across another process commit", %{
+    root: root,
+    path: path,
+    workers: [reader, writer]
+  } do
     if MP.supported?() do
-      MP.run!(["init", path])
-      MP.run!(["insert", path, "1", "initial"])
+      MP.run!(writer, ["init", path])
+      MP.run!(reader, ["insert", path, "1", "initial"])
       ready = tmp_path(root, "reader.ready")
       release = tmp_path(root, "reader.release")
       result = tmp_path(root, "reader.result")
-      child = MP.start(["hold-reader", path, ready, release, result])
+      child = MP.start(reader, ["hold-reader", path, ready, release, result])
       on_exit(fn -> MP.terminate(child) end)
 
       assert MP.await_term(ready) == 1
-      MP.run!(["insert", path, "2", "committed"])
+      MP.run!(writer, ["insert", path, "2", "committed"])
       MP.signal(release)
       assert MP.await_term(result) == {1, 1, 2}
+      assert {:ok, :ok} = MP.await_exit(child)
     end
   end
 
-  test "writers serialize through cross-process barriers", %{root: root, path: path} do
+  test "writers serialize through cross-process barriers", %{
+    root: root,
+    path: path,
+    workers: [first_worker, second_worker]
+  } do
     if MP.supported?() do
-      MP.run!(["init", path])
+      MP.run!(first_worker, ["init", path])
       first_ready = tmp_path(root, "first.ready")
       first_release = tmp_path(root, "first.release")
       first_result = tmp_path(root, "first.result")
       second_ready = tmp_path(root, "second.ready")
       second_result = tmp_path(root, "second.result")
 
-      first = MP.start(["hold-write", path, "1", first_ready, first_release, first_result])
+      first =
+        MP.start(first_worker, [
+          "hold-write",
+          path,
+          "1",
+          first_ready,
+          first_release,
+          first_result
+        ])
+
       on_exit(fn -> MP.terminate(first) end)
       assert MP.await_term(first_ready) == :written
 
-      second = MP.start(["contended-write", path, "2", second_ready, second_result])
+      second =
+        MP.start(second_worker, ["contended-write", path, "2", second_ready, second_result])
+
       on_exit(fn -> MP.terminate(second) end)
       assert MP.await_term(second_ready) == :attempting
       refute File.exists?(second_result)
@@ -67,6 +93,8 @@ defmodule Tursox.MultiprocessAccessTest do
       MP.signal(first_release)
       assert MP.await_term(first_result) == :ok
       assert MP.await_term(second_result) == :ok
+      assert {:ok, :ok} = MP.await_exit(first)
+      assert {:ok, :ok} = MP.await_exit(second)
 
       {database, connection} = open(path)
       assert rows(connection, "SELECT id FROM process_rows ORDER BY id") == [[1], [2]]

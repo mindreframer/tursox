@@ -1,26 +1,32 @@
 defmodule Tursox.MultiprocessRecoveryTest do
-  use Tursox.TestSupport.TmpCase, async: true
+  use Tursox.TestSupport.TmpCase, async: false
 
   alias Tursox.TestSupport.Multiprocess, as: MP
   alias Tursox.{Connection, Cursor, Database, Statement}
 
+  @moduletag timeout: 8_000
+
   setup %{tmp_dir: root} do
-    {:ok, root: root, path: tmp_path(root, "recovery.db")}
+    workers = if MP.supported?(), do: MP.nodes(), else: [nil, nil]
+    {:ok, root: root, path: tmp_path(root, "recovery.db"), workers: workers}
   end
 
   test "killed writer rolls back and a new process recovers the writer slot", %{
     root: root,
-    path: path
+    path: path,
+    workers: [doomed, survivor]
   } do
     if MP.supported?() do
-      MP.run!(["init", path])
+      MP.run!(survivor, ["init", path])
       ready = tmp_path(root, "crash.ready")
-      child = MP.start(["hold-uncommitted", path, "99", ready])
+      child = MP.start(doomed, ["hold-uncommitted", path, "99", ready])
       assert MP.await_term(ready) == :uncommitted
-      assert {:ok, status, _output} = MP.kill(child)
-      assert status != 0
+      assert :ok = MP.kill(child)
 
-      MP.run!(["insert", path, "1", "recovered"])
+      replacement = MP.replace(doomed)
+      refute replacement in [doomed, survivor]
+      assert Node.ping(survivor) == :pong
+      MP.run!(replacement, ["insert", path, "1", "recovered"])
       {database, connection} = open(path)
 
       assert rows(connection, "SELECT id, value FROM process_rows ORDER BY id") ==
@@ -31,12 +37,16 @@ defmodule Tursox.MultiprocessRecoveryTest do
     end
   end
 
-  test "0.7.2 does not enforce documented live mode-mixing rejection", %{root: root, path: path} do
+  test "0.7.2 does not enforce documented live mode-mixing rejection", %{
+    root: root,
+    path: path,
+    workers: [worker | _]
+  } do
     if MP.supported?() do
-      MP.run!(["init", path])
+      MP.run!(worker, ["init", path])
       ready = tmp_path(root, "open.ready")
       release = tmp_path(root, "open.release")
-      child = MP.start(["hold-open", path, ready, release])
+      child = MP.start(worker, ["hold-open", path, ready, release])
       on_exit(fn -> MP.terminate(child) end)
       assert MP.await_term(ready) == :open
 
@@ -47,7 +57,7 @@ defmodule Tursox.MultiprocessRecoveryTest do
       assert Database.metadata(mixed).features == []
       Database.close(mixed)
       MP.signal(release)
-      assert {:ok, 0, _output} = MP.await_exit(child)
+      assert {:ok, :ok} = MP.await_exit(child)
 
       {:ok, database} = Database.open(path)
       {:ok, connection} = Database.connect(database)
@@ -58,24 +68,25 @@ defmodule Tursox.MultiprocessRecoveryTest do
 
   test "cross-process checkpoint and schema change refresh existing statements", %{
     root: root,
-    path: path
+    path: path,
+    workers: [first, second]
   } do
     if MP.supported?() do
-      MP.run!(["init", path])
-      MP.run!(["insert", path, "1", "before-schema"])
+      MP.run!(first, ["init", path])
+      MP.run!(second, ["insert", path, "1", "before-schema"])
       {database, connection} = open(path)
 
       {:ok, statement} =
         Connection.prepare(connection, "SELECT id, value FROM process_rows ORDER BY id")
 
-      MP.run!(["schema", path])
+      MP.run!(second, ["schema", path])
       {:ok, cursor} = Statement.query(statement)
       {:ok, result} = Cursor.all(cursor, 10, 2)
       assert result.rows == [[1, "before-schema"]]
       Statement.close(statement)
 
       checkpoint_result = tmp_path(root, "checkpoint.result")
-      MP.run!(["checkpoint", path, checkpoint_result])
+      MP.run!(first, ["checkpoint", path, checkpoint_result])
       assert {:ok, [[busy, log, checkpointed]]} = MP.await_term(checkpoint_result)
       assert Enum.all?([busy, log, checkpointed], &is_integer/1)
       assert {:ok, [["ok"]]} = Connection.pragma_query(connection, :quick_check)
