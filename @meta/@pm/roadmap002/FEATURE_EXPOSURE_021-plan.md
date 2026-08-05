@@ -6,4 +6,4 @@
 - [x] Fix disposable probes to emit phases and classify exact exits/signals; reject setup failures as evidence.
 - [x] Test encryption lifecycle, redaction, wrong keys, and available ciphers.
 - [x] Document exact blockers for switches absent from the public 0.7.2 API/build, including tested SQLean ABI incompatibility.
-- [ ] Bump to 0.2.1, run QA, rebuild all precompiled NIFs, publish checksums/tag/release, and verify consumers/CI.
+- [x] Bump to 0.2.1, run QA, rebuild all precompiled NIFs, publish checksums/tag/release, and verify consumers/CI.

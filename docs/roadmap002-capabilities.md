@@ -207,8 +207,9 @@ Release workflow [31009283567](https://github.com/mindreframer/tursox/actions/ru
 built and directly smoke-tested all seven NIF 2.16 targets, including encrypted
 create/reopen behavior, then published [`v0.2.1`](https://github.com/mindreframer/tursox/releases/tag/v0.2.1)
 at commit `6ae70348a9c736cf3595120aa73e77cc78fc447d`. The checked-in checksum manifest
-was generated only by downloading those published assets. Follow-up CI verifies
-no-Rust consumers on every non-musl target.
+was generated only by downloading those published assets. Follow-up CI
+[31010606843](https://github.com/mindreframer/tursox/actions/runs/31010606843)
+passed logic QA and no-Rust consumers on every non-musl target.
 
 ## 0.2.0 release verification
 
