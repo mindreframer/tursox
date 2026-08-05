@@ -36,6 +36,9 @@ defmodule Tursox.Connection do
     :wal,
     :mvcc,
     :off,
+    :on,
+    :default,
+    :file,
     :passive,
     :full,
     :restart
@@ -181,6 +184,26 @@ defmodule Tursox.Connection do
     end
   end
 
+  @doc """
+  Runs an argument-bearing pragma without interpolating caller-controlled SQL.
+
+  Use `{:identifier, name}` for table/index arguments. Non-negative integers
+  support bounded integrity checks, and strings are safely quoted for structured
+  engine arguments such as CDC modes.
+  """
+  @spec pragma_query(
+          t(),
+          atom() | String.t(),
+          {:identifier, String.t()} | non_neg_integer() | String.t()
+        ) ::
+          {:ok, [[term()]]} | {:error, Error.t()}
+  def pragma_query(%__MODULE__{resource: resource}, name, argument) do
+    with {:ok, name} <- pragma_name(name),
+         {:ok, argument} <- pragma_argument(argument) do
+      native(Native.connection_pragma_query_argument(resource, name, argument))
+    end
+  end
+
   @doc "Updates a validated pragma and returns any ordered result rows."
   @spec pragma_update(t(), atom() | String.t(), term()) ::
           {:ok, [[term()]]} | {:error, Error.t()}
@@ -214,6 +237,23 @@ defmodule Tursox.Connection do
 
   defp pragma_value(_value),
     do: invalid("pragma value must be an integer, boolean, supported atom, or string")
+
+  defp pragma_argument({:identifier, value}) when is_binary(value) and byte_size(value) > 0 do
+    if String.contains?(value, <<0>>) do
+      invalid("pragma identifier cannot contain a NUL byte")
+    else
+      {:ok, ~s("#{String.replace(value, "\"", "\"\"")}")}
+    end
+  end
+
+  defp pragma_argument(value) when is_integer(value) and value >= 0,
+    do: {:ok, Integer.to_string(value)}
+
+  defp pragma_argument(value) when is_binary(value),
+    do: {:ok, "'#{String.replace(value, "'", "''")}'"}
+
+  defp pragma_argument(_value),
+    do: invalid("pragma argument must be an identifier tuple, non-negative integer, or string")
 
   defp validate_sql(sql, _operation) when is_binary(sql) and byte_size(sql) > 0, do: :ok
 

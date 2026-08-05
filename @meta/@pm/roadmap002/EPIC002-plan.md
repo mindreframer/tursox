@@ -2,13 +2,13 @@
 
 ## Progress
 
-- [ ] Phase 2.1: Inventory documented PRAGMAs and define expected capability statuses.
-- [ ] Phase 2.2: Test database metadata and schema/index/function introspection.
-- [ ] Phase 2.3: Add safe argument-bearing PRAGMA support and injection tests.
-- [ ] Phase 2.4: Test configuration scope, validation, and persistence.
-- [ ] Phase 2.5: Test integrity, WAL/MVCC, CDC, encryption, and type PRAGMAs.
-- [ ] Phase 2.6: Isolate hazardous probes and document unsupported/result-shape findings.
-- [ ] Phase 2.7: Publish the PRAGMA matrix, pass QA, and commit Epic 2.
+- [x] Phase 2.1: Inventory documented PRAGMAs and define expected capability statuses.
+- [x] Phase 2.2: Test database metadata and schema/index/function introspection.
+- [x] Phase 2.3: Add safe argument-bearing PRAGMA support and injection tests.
+- [x] Phase 2.4: Test configuration scope, validation, and persistence.
+- [x] Phase 2.5: Test integrity, WAL/MVCC, CDC, encryption, and type PRAGMAs.
+- [x] Phase 2.6: Isolate hazardous probes and document unsupported/result-shape findings.
+- [x] Phase 2.7: Publish the PRAGMA matrix, pass QA, and commit Epic 2.
 
 ## Implementation Steps
 
@@ -22,11 +22,11 @@
 
 ## Quality Gate
 
-- [ ] Every checklist PRAGMA has an executable status.
-- [ ] Supported result shapes and scopes are asserted.
-- [ ] Identifier/argument handling is injection-safe.
-- [ ] Hazardous probes cannot crash the main test VM.
-- [ ] QA passes.
+- [x] Every checklist PRAGMA has an executable status.
+- [x] Supported result shapes and scopes are asserted.
+- [x] Identifier/argument handling is injection-safe.
+- [x] Hazardous probes cannot crash the main test VM.
+- [x] QA passes.
 
 ## Commit Rule
 

@@ -41,6 +41,9 @@ defmodule Tursox.Native do
   def connection_cache_flush(_connection), do: :erlang.nif_error(:nif_not_loaded)
   def connection_pragma_query(_connection, _name), do: :erlang.nif_error(:nif_not_loaded)
 
+  def connection_pragma_query_argument(_connection, _name, _argument),
+    do: :erlang.nif_error(:nif_not_loaded)
+
   def connection_pragma_update(_connection, _name, _value),
     do: :erlang.nif_error(:nif_not_loaded)
 

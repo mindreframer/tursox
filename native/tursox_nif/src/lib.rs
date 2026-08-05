@@ -37,6 +37,7 @@ mod atoms {
         connection_status,
         connection_cache_flush,
         connection_pragma_query,
+        connection_pragma_query_argument,
         connection_pragma_update,
         connection_execute,
         connection_execute_batch,
@@ -592,6 +593,10 @@ fn pragma_sql(name: &str, value: Option<&str>) -> String {
     }
 }
 
+fn pragma_argument_sql(name: &str, argument: &str) -> String {
+    format!("PRAGMA {name}({argument})")
+}
+
 fn run_pragma(
     connection: &ConnectionResource,
     name: &str,
@@ -648,6 +653,30 @@ fn connection_pragma_query(
     name: String,
 ) -> Result<Vec<Vec<SqlValue>>, NativeError> {
     run_pragma(&connection, &name, None, atoms::connection_pragma_query())
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+fn connection_pragma_query_argument(
+    connection: ResourceArc<ConnectionResource>,
+    name: String,
+    argument: String,
+) -> Result<Vec<Vec<SqlValue>>, NativeError> {
+    let operation = atoms::connection_pragma_query_argument();
+    connection.ensure_open(operation)?;
+    let inner = connection.inner.lock().map_err(|_| lock_error(operation))?;
+    let connection = inner
+        .as_ref()
+        .ok_or_else(|| NativeError::closed(operation, "connection"))?;
+    runtime_for(operation)?.block_on(async {
+        collect_rows(
+            connection
+                .query(pragma_argument_sql(&name, &argument), ())
+                .await
+                .map_err(|error| classify(error, operation))?,
+            operation,
+        )
+        .await
+    })
 }
 
 #[rustler::nif(schedule = "DirtyIo")]

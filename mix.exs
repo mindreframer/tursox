@@ -49,6 +49,7 @@ defmodule Tursox.MixProject do
         "THIRD_PARTY_NOTICES.md",
         "docs/architecture.md",
         "docs/capabilities.md",
+        "docs/roadmap002-capabilities.md",
         "docs/compatibility/turso-0.7.2.md",
         "docs/databases-and-connections.md",
         "docs/queries-and-cursors.md",
