@@ -14,4 +14,11 @@ nif_version_2_16 = ["rustler/nif_version_2_16"]
 [dependencies]
 rustler = "=0.38.0"
 tokio = { version = "=1.47.1", features = ["rt-multi-thread"] }
-turso = { version = "=0.7.2", default-features = false }
+# FTS is deliberate: it adds Tantivy-backed index support to every source and
+# precompiled artifact while retaining the pinned engine and disabled allocator.
+turso = { version = "=0.7.2", default-features = false, features = ["fts"] }
+
+# Tantivy 0.26.0 requires oneshot 0.1.13, whose crates.io index entry is not
+# currently downloadable. Vendor the exact upstream v0.1.13 source and licenses.
+[patch.crates-io]
+oneshot = { path = "vendor/oneshot" }

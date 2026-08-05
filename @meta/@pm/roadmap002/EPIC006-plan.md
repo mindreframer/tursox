@@ -2,13 +2,13 @@
 
 ## Progress
 
-- [ ] Phase 6.1: Select and document pinned Cargo features needed for FTS/extensions.
-- [ ] Phase 6.2: Test FTS indexes, tokenizers, weights, matching, and query syntax.
-- [ ] Phase 6.3: Test scoring, highlighting, bounded results, and invalid queries.
-- [ ] Phase 6.4: Test FTS DML, transactions, optimize, drop, and reopen behavior.
-- [ ] Phase 6.5: Inventory built-in/loadable extension functions in the embedded build.
-- [ ] Phase 6.6: Smoke-test available extension families and source/precompiled parity.
-- [ ] Phase 6.7: Publish extension capabilities, pass QA, and commit Epic 6.
+- [x] Phase 6.1: Select and document pinned Cargo features needed for FTS/extensions.
+- [x] Phase 6.2: Test FTS indexes, tokenizers, weights, matching, and query syntax.
+- [x] Phase 6.3: Test scoring, highlighting, bounded results, and invalid queries.
+- [x] Phase 6.4: Test FTS DML, transactions, optimize, drop, and reopen behavior.
+- [x] Phase 6.5: Inventory built-in/loadable extension functions in the embedded build.
+- [x] Phase 6.6: Smoke-test available extension families and source/precompiled parity.
+- [x] Phase 6.7: Publish extension capabilities, pass QA, and commit Epic 6.
 
 ## Implementation Steps
 
@@ -22,11 +22,11 @@
 
 ## Quality Gate
 
-- [ ] Advertised FTS behavior passes end to end.
-- [ ] FTS lifecycle and transaction limitations are documented.
-- [ ] Extension inventory matches runtime availability.
-- [ ] Source and precompiled consumers expose the same capabilities.
-- [ ] QA passes.
+- [x] Advertised FTS behavior passes end to end.
+- [x] FTS lifecycle and transaction limitations are documented.
+- [x] Extension inventory matches runtime availability.
+- [x] Source and precompiled consumers expose the same capabilities.
+- [x] QA passes.
 
 ## Commit Rule
 

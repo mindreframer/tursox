@@ -73,6 +73,7 @@ defmodule Tursox.MixProject do
         [
           "lib",
           "native/tursox_nif/src",
+          "native/tursox_nif/vendor",
           "native/tursox_nif/Cargo.toml",
           "native/tursox_nif/Cargo.lock",
           ".cargo/config.toml",

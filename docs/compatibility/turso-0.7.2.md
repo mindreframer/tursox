@@ -25,11 +25,13 @@ Exact sources:
 | RustlerPrecompiled | 0.8.4 |
 | Rust | 1.91.0 (`f8297e351`) |
 
-`turso` uses `default-features = false`. Tursox therefore does not install the
-crate's mimalloc global allocator and does not silently enable FTS. Cloud sync,
-pure-Rust crypto, memory-yield, stacker, and test-helper features are disabled.
-The production NIF currently uses no Turso API until Epic 2; its exact dependency
-is compiled and linted in the Epic 1 gate.
+`turso` uses `default-features = false` plus the deliberate `fts` feature.
+Tursox therefore does not install the crate's mimalloc global allocator, while
+all source/precompiled builds include the tested Tantivy-backed index method.
+Cloud sync, pure-Rust crypto, memory-yield, stacker, and test-helper features are
+disabled. Tantivy resolves exactly through the native lockfile; the unavailable
+crates.io entry for its `oneshot = 0.1.13` requirement is satisfied by the exact
+vendored upstream v0.1.13 source and licenses.
 
 RustlerPrecompiled names these candidate targets: macOS aarch64/x86-64, Linux
 aarch64/x86-64 GNU and musl, and Windows x86-64 MSVC. Epic 1 CI proves source

@@ -3,9 +3,10 @@
 See the [exact native capability record](compatibility/turso-0.7.2.md) for
 lockfile resolutions, source links, feature decisions, target status, and proof.
 
-The native crate pins `turso = 0.7.2` with default features disabled. This avoids
-installing Turso's `mimalloc` global allocator and avoids accidental FTS support.
-The observations below were verified against the published 0.7.2 crate source.
+The native crate pins `turso = 0.7.2` with default features disabled and opts
+back into only the deliberate `fts` feature. This avoids Turso's `mimalloc`
+global allocator while providing tested Tantivy-backed search. The observations
+below were verified against the published 0.7.2 crate source and Tursox tests.
 
 | Capability | 0.7.2 public API | Tursox 0.1 plan |
 |---|---:|---:|
@@ -22,6 +23,8 @@ The observations below were verified against the published 0.7.2 crate source.
 | Cloud sync | Feature-gated | Deferred |
 | Interrupt handle | No stable Rust API | Unsupported |
 | Read-only/open-mode builder | No stable Rust API | Unsupported |
+| FTS index method/functions | Cargo `fts` + builder switch | Supported, opt-in per database |
+| Runtime extension loading | Disabled embedded registry | Unsupported |
 
 Builder switches confirmed in 0.7.2 are encryption, attach, custom types,
 generated columns, index methods, materialized views, vacuum, multiprocess WAL,

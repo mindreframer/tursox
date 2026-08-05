@@ -39,11 +39,11 @@ defmodule Tursox.Capabilities do
       note: "no validated key/open contract; deliberately not exposed"
     },
     index_method: %{
-      status: :partial,
+      status: :supported,
       builder: :experimental_index_method,
       option: :index_method,
       cargo: :fts,
-      note: "parser/index switch available; FTS build coverage is recorded separately"
+      note: "parser/index switch and deliberate Cargo FTS support are enabled"
     },
     autovacuum: %{
       status: :unsupported,

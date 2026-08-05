@@ -70,7 +70,7 @@ option with `Database.builder_features/0`.
 | Materialized views | `experimental_materialized_views` / `:materialized_views` | unsafe | Disabled parser gate is stable; enabled 0.7.2 execution can bus-error and is probed only in a child BEAM |
 | Custom types and domains | `experimental_custom_types` / `:custom_types` | unsafe | Disabled parser gate is stable; enabled create-type execution can bus-error and is child-only |
 | Encryption | `experimental_encryption` / none | unsupported | Builder exists, but the disabled Cargo crypto feature and absent secret-safe open contract make exposure unsafe |
-| Index methods | `experimental_index_method` / `:index_method` | partial | Parser gate works; method availability additionally depends on the deliberate Cargo `fts` feature |
+| Index methods | `experimental_index_method` / `:index_method` | supported | Parser gate works and every build deliberately includes the Cargo `fts` feature |
 | Autovacuum | absent / none | unsupported | Web-documented experimental builder switch is absent from 0.7.2 |
 | Vacuum | `experimental_vacuum` / `:vacuum` | partial | Works on an initialized file; empty databases produce a 0.7.2 internal error |
 | Attach/detach | `experimental_attach` / `:attach` | supported | Disabled gate and enabled attach/list/detach pass |
@@ -125,3 +125,51 @@ Proof: `test/view_capability_test.exs`, `test/table_feature_test.exs`, and
 Materialized-view IVM, unsupported query shapes, dependencies, and refresh are not
 advertised because the enabled pin is unsafe. File fixtures use unique local
 paths and close attached/database resources before cleanup.
+
+## Full-text search
+
+Proof: `test/fts_test.exs`; the no-Rust consumer smoke also creates and queries
+an FTS index, enforcing source/precompiled parity. All builds use
+`turso/default-features = false` plus only `features = ["fts"]`; the opt-in
+`:index_method` database switch remains required.
+
+| FTS capability | Status | Observed 0.7.2 behavior |
+|---|---|---|
+| Index and matching | supported | `CREATE INDEX ... USING fts(cols)` and `fts_match(cols, query)` return deterministic ordered IDs |
+| Ranking | supported | `fts_score` returns real BM25-like scores with deterministic relative ordering |
+| Highlighting | supported | `fts_highlight(cols, open, close, query)` returns text and preserves unmatched text |
+| Query syntax | partial | Terms, boolean AND, and phrases pass; documented prefix behavior is not advertised on this pin |
+| Tokenizers | partial | Global `raw`, `simple`, `whitespace`, and `ngram` options create; newer per-column `WITH tokenizer=...` syntax is rejected |
+| Field weights | supported | Global `WITH (weights = 'column=weight,...')` creates and ranks |
+| Bounded/bound query | supported | Parameters and incremental cursor chunks preserve limits and order |
+| DML and transactions | supported | Insert/update/delete maintain the index; rollback removes index changes; unlike newer docs, 0.7.2 has read-your-writes on the writer |
+| Optimize/drop/reopen | supported | Named optimize succeeds, index survives reopen, delete/drop cleanly remove indexed/schema state |
+| Invalid queries/methods | supported | Stable Tursox errors without SQL/row leakage |
+
+Turso FTS is Tantivy-backed and is not advertised as SQLite FTS5 compatibility.
+The exact upstream `oneshot` 0.1.13 source is vendored only because Tantivy's
+required crates.io index entry is unavailable; licenses and attribution ship in
+the package.
+
+## Built-in and loadable extensions
+
+Proof: `test/extension_inventory_test.exs`, derived from `function_list` and
+`module_list` rather than web-documentation presence.
+
+| Extension family | Status | Pinned inventory / smoke |
+|---|---|---|
+| UUID | supported | UUID4/7, blob/string conversion; representative blob/text widths pass |
+| Regexp | partial | `regexp` and `REGEXP` operator work; newer substring/capture/replace functions are absent |
+| Vector | supported | vector32 extraction and L2 distance return blob-backed vector/text/real shapes |
+| Time | supported | Opaque blob values, date formatting, and duration constants pass |
+| Percentile | supported | median, percentile, continuous, and discrete aggregate shapes pass |
+| `generate_series` | supported | Module yields inclusive ordered integer rows |
+| Crypto | unsupported | No functions in the embedded registry |
+| Fuzzy | unsupported | No functions in the embedded registry |
+| IP address | unsupported | Documented family absent (an unrelated `validate_ipaddr` scalar exists) |
+| CSV | unsupported | No CSV module; virtual table creation fails safely |
+| Runtime loading | unsupported | `load_extension` is registered but runtime loading is disabled; names and arbitrary native paths fail safely |
+
+Malformed UUID/regexp/percentile inputs return NULL on 0.7.2, and a zero series
+step uses the default positive step; vector dimension and invalid time inputs
+return errors. These tested differences are retained rather than normalized.
