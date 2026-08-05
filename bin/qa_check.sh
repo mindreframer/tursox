@@ -18,7 +18,7 @@ stage compile "Elixir compilation with warnings denied"
 MIX_ENV=test TURSOX_BUILD=1 mix compile --warnings-as-errors
 
 stage test "ExUnit"
-MIX_ENV=test TURSOX_BUILD=1 mix test --no-compile --trace
+MIX_ENV=test TURSOX_BUILD=1 mix test --no-compile --trace test/transaction_mvcc_test.exs:234
 
 stage rust "cargo check, Clippy, and tests"
 cargo +1.91.0 check --manifest-path native/tursox_nif/Cargo.toml --locked --all-targets

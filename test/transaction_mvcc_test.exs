@@ -236,32 +236,62 @@ defmodule Tursox.TransactionMvccTest do
   } do
     path = tmp_path(tmp_dir)
 
+    IO.puts(:stderr, "checkpoint debug: native database open")
+    {:ok, native_database} = Native.database_open(path, [])
+    IO.puts(:stderr, "checkpoint debug: native connection open")
+    {:ok, native_connection} = Native.database_connect(native_database, 0)
+    IO.puts(:stderr, "checkpoint debug: native journal update")
+    {:ok, _} = Native.connection_pragma_update(native_connection, "journal_mode", "mvcc")
+    IO.puts(:stderr, "checkpoint debug: native journal query")
+    {:ok, _} = Native.connection_pragma_query(native_connection, "journal_mode")
+    IO.puts(:stderr, "checkpoint debug: native close")
+    :ok = Native.connection_close(native_connection)
+    :ok = Native.database_close(native_database)
+
+    IO.puts(:stderr, "checkpoint debug: open mvcc")
     {:ok, database} = Database.open(path, journal_mode: :mvcc)
+    IO.puts(:stderr, "checkpoint debug: connect mvcc")
     {:ok, connection} = Database.connect(database)
+    IO.puts(:stderr, "checkpoint debug: threshold")
     assert {:ok, 64} = Connection.set_mvcc_checkpoint_threshold(connection, 64)
+    IO.puts(:stderr, "checkpoint debug: create")
     :ok = Connection.execute(connection, "CREATE TABLE durable (value TEXT)")
+    IO.puts(:stderr, "checkpoint debug: insert")
     :ok = Connection.execute(connection, "INSERT INTO durable VALUES ('kept')")
+
+    IO.puts(:stderr, "checkpoint debug: reject manual checkpoint")
 
     assert {:error, %Error{code: :unsupported}} =
              Connection.checkpoint(connection, :passive)
 
+    IO.puts(:stderr, "checkpoint debug: integrity")
     assert rows(connection, "PRAGMA integrity_check") == [["ok"]]
+    IO.puts(:stderr, "checkpoint debug: close mvcc")
     close_all([connection], database)
 
+    IO.puts(:stderr, "checkpoint debug: reopen mvcc")
     {:ok, reopened} = Database.open(path, journal_mode: :mvcc)
     {:ok, connection} = Database.connect(reopened)
+    IO.puts(:stderr, "checkpoint debug: read reopened")
     assert rows(connection, "SELECT value FROM durable") == [["kept"]]
+    IO.puts(:stderr, "checkpoint debug: close reopened")
     close_all([connection], reopened)
 
+    IO.puts(:stderr, "checkpoint debug: open wal")
     {:ok, wal} = Database.open(Path.join(tmp_dir, "wal.db"), journal_mode: :wal)
     {:ok, connection} = Database.connect(wal)
+    IO.puts(:stderr, "checkpoint debug: create wal")
     :ok = Connection.execute(connection, "CREATE TABLE checkpointed (value INTEGER)")
+
+    IO.puts(:stderr, "checkpoint debug: manual wal checkpoint")
 
     assert {:ok, [[busy, log_frames, checkpointed_frames]]} =
              Connection.checkpoint(connection, :passive)
 
     assert Enum.all?([busy, log_frames, checkpointed_frames], &is_integer/1)
+    IO.puts(:stderr, "checkpoint debug: close wal")
     close_all([connection], wal)
+    IO.puts(:stderr, "checkpoint debug: done")
   end
 
   defp writer_task(parent, connection, id) do
