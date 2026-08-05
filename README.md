@@ -1,5 +1,10 @@
 # Tursox
 
+[![Hex.pm](https://img.shields.io/hexpm/v/tursox.svg)](https://hex.pm/packages/tursox)
+[![HexDocs](https://img.shields.io/badge/HexDocs-API%20reference-6e4a7e.svg)](https://hexdocs.pm/tursox)
+[![CI](https://github.com/mindreframer/tursox/actions/workflows/ci.yml/badge.svg)](https://github.com/mindreframer/tursox/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/mindreframer/tursox/blob/main/LICENSE)
+
 Tursox is an Elixir wrapper around the embedded
 [Turso](https://github.com/tursodatabase/turso) engine. It preserves Turso's
 ownership model: one database derives independent connections, real prepared

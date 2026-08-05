@@ -6,12 +6,12 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC007-spec.md` completel
 
 ## Progress
 
-- [ ] Phase 7.1: Stabilize names, options, defaults, errors, result shapes, and compatibility guarantees.
-- [ ] Phase 7.2: Add safe telemetry and resource/scheduler observability.
-- [ ] Phase 7.3: Harden fault, contention, large-result, churn, and shutdown paths.
-- [ ] Phase 7.4: Complete README, API guides, architecture, compatibility, security, and changelog docs.
-- [ ] Phase 7.5: Add the CI matrix, precompiled build, raw smoke, and no-Rust consumers.
-- [ ] Phase 7.6: Synchronize `0.1.0`, validate exact artifacts/checksums, and verify clean installs.
+- [x] Phase 7.1: Stabilize names, options, defaults, errors, result shapes, and compatibility guarantees.
+- [x] Phase 7.2: Add safe telemetry and resource/scheduler observability.
+- [x] Phase 7.3: Harden fault, contention, large-result, churn, and shutdown paths.
+- [x] Phase 7.4: Complete README, API guides, architecture, compatibility, security, and changelog docs.
+- [x] Phase 7.5: Add the CI matrix, precompiled build, raw smoke, and no-Rust consumers.
+- [x] Phase 7.6: Synchronize `0.1.0`, validate exact artifacts/checksums, and verify clean installs.
 - [ ] Phase 7.7: Pass final QA, publish/verify when authorized, and create the focused Epic 7 commit.
 
 ## Implementation Steps
@@ -26,13 +26,13 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC007-spec.md` completel
 
 ## Quality Gate
 
-- [ ] API/docs/compatibility review is complete.
-- [ ] Telemetry and error redaction tests pass.
-- [ ] Memory, scheduler, churn, and fault suites pass.
-- [ ] Docs build cleanly.
-- [ ] Exact binary set passes raw and no-Rust consumer smoke tests.
-- [ ] Version and changelog are synchronized.
-- [ ] Final `bin/qa_check.sh` passes from a clean checkout.
+- [x] API/docs/compatibility review is complete.
+- [x] Telemetry and error redaction tests pass.
+- [x] Memory, scheduler, churn, and fault suites pass.
+- [x] Docs build cleanly.
+- [x] Exact binary set passes raw and no-Rust consumer smoke tests.
+- [x] Version and changelog are synchronized.
+- [x] Final `bin/qa_check.sh` passes from a clean checkout.
 
 ## Commit Rule
 
