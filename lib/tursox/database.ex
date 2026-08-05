@@ -19,8 +19,7 @@ defmodule Tursox.Database do
     :materialized_views,
     :vacuum,
     :multiprocess_wal,
-    :without_rowid,
-    :mvcc_passive_checkpoint
+    :without_rowid
   ]
   @allowed_options [:busy_timeout, :create_parent, :features, :journal_mode, :mode]
 

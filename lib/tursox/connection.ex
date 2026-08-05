@@ -7,7 +7,7 @@ defmodule Tursox.Connection do
   a global lock.
   """
 
-  alias Tursox.{Column, Database, Error, Native, Parameters, Result, Statement}
+  alias Tursox.{Column, Database, Error, Native, Parameters, Result, Statement, Transaction}
 
   @enforce_keys [:resource, :database, :busy_timeout]
   defstruct [:resource, :database, :busy_timeout]
@@ -104,6 +104,29 @@ defmodule Tursox.Connection do
   def last_insert_rowid(%__MODULE__{resource: resource}) do
     native(Native.connection_last_insert_rowid(resource))
   end
+
+  @doc "Begins a deferred, immediate, exclusive, or MVCC concurrent transaction."
+  def begin(connection, opts \\ []), do: Transaction.begin(connection, opts)
+
+  @doc "Commits the active transaction."
+  def commit(connection), do: Transaction.commit(connection)
+
+  @doc "Rolls back the active transaction."
+  def rollback(connection), do: Transaction.rollback(connection)
+
+  @doc "Runs a rollback-safe transaction callback."
+  def transaction(connection, fun, opts \\ []), do: Transaction.transaction(connection, fun, opts)
+
+  @doc "Retries a complete transaction callback after classified conflicts."
+  def retry_transaction(connection, fun, opts \\ []),
+    do: Transaction.retry_transaction(connection, fun, opts)
+
+  @doc "Runs a tested WAL/MVCC checkpoint pragma."
+  def checkpoint(connection, mode \\ :passive), do: Transaction.checkpoint(connection, mode)
+
+  @doc "Sets and verifies the experimental MVCC checkpoint threshold."
+  def set_mvcc_checkpoint_threshold(connection, threshold),
+    do: Transaction.set_mvcc_checkpoint_threshold(connection, threshold)
 
   @doc "Returns whether this connection is currently in autocommit mode."
   @spec autocommit?(t()) :: {:ok, boolean()} | {:error, Error.t()}

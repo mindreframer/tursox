@@ -10,3 +10,5 @@
   validated builder options, safe pragmas, logical close, and resource gauges.
 - Strict SQLite values and parameters, native prepared statements, ordered
   metadata, bounded incremental cursors, lazy streams, and explicit map conversion.
+- Rollback-safe transaction callbacks, four transaction modes, experimental MVCC
+  conflict classification and whole-callback retry, checkpoint threshold, and WAL checkpoints.

@@ -16,8 +16,8 @@ The observations below were verified against the published 0.7.2 crate source.
 | Ordered names and declaration types | Yes | Epic 3 |
 | `BusySnapshot` error variant | Yes | Epic 4 |
 | `BEGIN CONCURRENT` / MVCC pragma | Engine SQL, experimental | Epic 4 |
-| MVCC passive checkpoint builder switch | Yes, experimental | Epic 4 |
-| Manual local checkpoint Rust method | No | Version-gated pragma only |
+| MVCC passive checkpoint builder switch | Yes, unsafe runtime probe | Rejected |
+| Manual local checkpoint Rust method | No | WAL pragma only; MVCC rejected |
 | Multiprocess WAL builder switch | Yes, experimental | Validated, not production-supported |
 | Cloud sync | Feature-gated | Deferred |
 | Interrupt handle | No stable Rust API | Unsupported |
@@ -26,8 +26,8 @@ The observations below were verified against the published 0.7.2 crate source.
 Builder switches confirmed in 0.7.2 are encryption, attach, custom types,
 generated columns, index methods, materialized views, vacuum, multiprocess WAL,
 `WITHOUT ROWID`, and MVCC passive checkpointing. Triggers and strict tables are
-always enabled despite retained compatibility methods. Every experimental switch
-will remain opt-in.
+always enabled despite retained compatibility methods. Exposed experimental
+switches remain opt-in; encryption and unsafe passive MVCC checkpointing are rejected.
 
 MVCC is experimental upstream and provides snapshot isolation, not a claim of
 serializability. Behavior present only in Turso main is not part of this matrix.

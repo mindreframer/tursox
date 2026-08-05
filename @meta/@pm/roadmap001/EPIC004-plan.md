@@ -6,13 +6,13 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC004-spec.md` completel
 
 ## Progress
 
-- [ ] Phase 4.1: Define transaction ownership, nesting, failure, and retry contracts.
-- [ ] Phase 4.2: Implement deferred, immediate, exclusive, concurrent begin/commit/rollback paths.
-- [ ] Phase 4.3: Add explicit WAL/MVCC journal configuration and compatibility validation.
-- [ ] Phase 4.4: Preserve busy-snapshot classification and add bounded whole-transaction retries.
-- [ ] Phase 4.5: Expose and verify supported MVCC checkpoint controls.
-- [ ] Phase 4.6: Prove concurrent writes, conflicts, snapshots, rollback, integrity, and durability.
-- [ ] Phase 4.7: Pass the epic gate and create the focused Epic 4 commit.
+- [x] Phase 4.1: Define transaction ownership, nesting, failure, and retry contracts.
+- [x] Phase 4.2: Implement deferred, immediate, exclusive, concurrent begin/commit/rollback paths.
+- [x] Phase 4.3: Add explicit WAL/MVCC journal configuration and compatibility validation.
+- [x] Phase 4.4: Preserve busy-snapshot classification and add bounded whole-transaction retries.
+- [x] Phase 4.5: Expose and verify supported MVCC checkpoint controls.
+- [x] Phase 4.6: Prove concurrent writes, conflicts, snapshots, rollback, integrity, and durability.
+- [x] Phase 4.7: Pass the epic gate and create the focused Epic 4 commit.
 
 ## Implementation Steps
 
@@ -26,13 +26,13 @@ Read `@meta/@pm/ROADMAP001.md`, `REFERENCES.md`, and `EPIC004-spec.md` completel
 
 ## Quality Gate
 
-- [ ] All callback failure paths roll back.
-- [ ] Disjoint concurrent writers commit from separate connections.
-- [ ] Same-row conflict is stable and retryable without partial commit.
-- [ ] Retry bounds and non-retry classes are enforced.
-- [ ] Checkpoint and reopen tests pass.
-- [ ] MVCC experimental limitations are documented.
-- [ ] QA passes.
+- [x] All callback failure paths roll back.
+- [x] Disjoint concurrent writers commit from separate connections.
+- [x] Same-row conflict is stable and retryable without partial commit.
+- [x] Retry bounds and non-retry classes are enforced.
+- [x] Checkpoint and reopen tests pass.
+- [x] MVCC experimental limitations are documented.
+- [x] QA passes.
 
 ## Commit Rule
 

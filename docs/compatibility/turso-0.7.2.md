@@ -43,9 +43,11 @@ Epic 2 may expose these opt-in `Builder` switches, all present in 0.7.2:
 `experimental_generated_columns`, `experimental_index_method`,
 `experimental_materialized_views`, `experimental_vacuum`,
 `experimental_multiprocess_wal`, `experimental_without_rowid`, and
-`experimental_mvcc_passive_checkpoint`. These switches are exposed as explicit
-atoms in `Tursox.Database`'s `:features` option and covered by lifecycle tests.
-Encryption requires a separate validated key contract and remains unsupported
+`experimental_mvcc_passive_checkpoint`. All except passive MVCC checkpointing
+are exposed as explicit atoms in `Tursox.Database`'s `:features` option and
+covered by lifecycle tests. The passive switch is rejected because executable
+0.7.2 probes found its manual checkpoint path unsafe for the VM. Encryption
+requires a separate validated key contract and remains unsupported
 until implemented. `experimental_triggers` and `experimental_strict` are
 compatibility no-ops because those features are always enabled.
 
@@ -75,12 +77,13 @@ Concurrent mode must execute tested `BEGIN CONCURRENT` SQL; Tursox must not refe
 to the `Concurrent` variant added after 0.7.2. `PRAGMA journal_mode = mvcc` must
 be set and read back before concurrent mode is accepted.
 
-The source exposes `experimental_mvcc_passive_checkpoint`. Compatibility
-material mentions `mvcc_checkpoint_threshold` and `wal_checkpoint`, but accepted
-inputs and result rows are deliberately **not yet public**. Epic 4 must add
-runtime probes and record their exact results here before checking its checkpoint
-phase. MVCC remains experimental and provides snapshot isolation, not a
-serializability guarantee.
+The source exposes `experimental_mvcc_passive_checkpoint`, but a 0.7.2 runtime
+probe of `PRAGMA wal_checkpoint(PASSIVE)` with that switch caused a native bus
+error. Tursox therefore rejects the switch and manual MVCC checkpoint calls as
+`:unsupported`. `mvcc_checkpoint_threshold` accepts and reads back non-negative
+integers; the suite verifies 64. WAL `wal_checkpoint(PASSIVE)` safely returns one
+ordered three-integer row (`busy`, log frames, checkpointed frames). MVCC remains
+experimental and provides snapshot isolation, not a serializability guarantee.
 
 ## Intentionally absent
 

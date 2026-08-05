@@ -83,6 +83,10 @@ impl NativeError {
         Self::new(atoms::invalid_argument(), operation, message)
     }
 
+    fn unsupported(operation: Atom, message: impl Into<String>) -> Self {
+        Self::new(atoms::unsupported(), operation, message)
+    }
+
     fn closed(operation: Atom, resource: &str) -> Self {
         Self::new(
             atoms::closed(),
@@ -315,6 +319,20 @@ fn runtime_for(operation: Atom) -> Result<&'static Runtime, NativeError> {
     runtime().map_err(|message| NativeError::internal(operation, message))
 }
 
+fn supported_builder_feature(feature: &str) -> bool {
+    matches!(
+        feature,
+        "attach"
+            | "custom_types"
+            | "generated_columns"
+            | "index_method"
+            | "materialized_views"
+            | "vacuum"
+            | "multiprocess_wal"
+            | "without_rowid"
+    )
+}
+
 fn build_database(path: &str, features: &[String]) -> Builder {
     let mut builder = Builder::new_local(path);
     for feature in features {
@@ -327,7 +345,6 @@ fn build_database(path: &str, features: &[String]) -> Builder {
             "vacuum" => builder.experimental_vacuum(true),
             "multiprocess_wal" => builder.experimental_multiprocess_wal(true),
             "without_rowid" => builder.experimental_without_rowid(true),
-            "mvcc_passive_checkpoint" => builder.experimental_mvcc_passive_checkpoint(true),
             _ => builder,
         };
     }
@@ -377,10 +394,20 @@ fn database_open(
     path: String,
     features: Vec<String>,
 ) -> Result<ResourceArc<DatabaseResource>, NativeError> {
-    let runtime = runtime_for(atoms::database_open())?;
+    let operation = atoms::database_open();
+    if let Some(feature) = features
+        .iter()
+        .find(|feature| !supported_builder_feature(feature))
+    {
+        return Err(NativeError::unsupported(
+            operation,
+            format!("unsupported database builder feature: {feature}"),
+        ));
+    }
+    let runtime = runtime_for(operation)?;
     let database = runtime
         .block_on(build_database(&path, &features).build())
-        .map_err(|error| classify(error, atoms::database_open()))?;
+        .map_err(|error| classify(error, operation))?;
     DATABASES.fetch_add(1, Ordering::AcqRel);
     Ok(ResourceArc::new(DatabaseResource {
         inner: Mutex::new(Some(database)),
@@ -921,7 +948,9 @@ mod tests {
     }
 
     #[test]
-    fn unknown_features_are_inert_after_elixir_validation() {
-        let _builder = build_database(":memory:", &["unknown".to_string()]);
+    fn builder_feature_allowlist_is_strict() {
+        assert!(supported_builder_feature("attach"));
+        assert!(!supported_builder_feature("mvcc_passive_checkpoint"));
+        assert!(!supported_builder_feature("unknown"));
     }
 }
