@@ -201,6 +201,15 @@ Child waits are deadline-bounded and synchronized by atomically renamed barrier
 files. Crash children are killed and reaped. The on-disk coordinator is
 experimental and is not a cross-version stability promise.
 
+## 0.2.1 correction release verification
+
+Release workflow [31009283567](https://github.com/mindreframer/tursox/actions/runs/31009283567)
+built and directly smoke-tested all seven NIF 2.16 targets, including encrypted
+create/reopen behavior, then published [`v0.2.1`](https://github.com/mindreframer/tursox/releases/tag/v0.2.1)
+at commit `6ae70348a9c736cf3595120aa73e77cc78fc447d`. The checked-in checksum manifest
+was generated only by downloading those published assets. Follow-up CI verifies
+no-Rust consumers on every non-musl target.
+
 ## 0.2.0 release verification
 
 Release workflow [31002711851](https://github.com/mindreframer/tursox/actions/runs/31002711851)
