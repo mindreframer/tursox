@@ -20,9 +20,8 @@ MIX_ENV=test TURSOX_BUILD=1 mix compile --warnings-as-errors
 stage test "ExUnit"
 MIX_ENV=test TURSOX_BUILD=1 mix test --no-compile
 
-stage rust "cargo check, Clippy, and tests"
-cargo +1.91.0 check --manifest-path native/tursox_nif/Cargo.toml --locked --all-targets
-cargo +1.91.0 clippy --manifest-path native/tursox_nif/Cargo.toml --locked --all-targets -- -D warnings
+stage rust "Clippy for Tursox and Rust tests"
+cargo +1.91.0 clippy --manifest-path native/tursox_nif/Cargo.toml --locked --all-targets --no-deps -- -D warnings
 cargo +1.91.0 test --manifest-path native/tursox_nif/Cargo.toml --locked --all-targets
 
 stage ok "all checks passed"
